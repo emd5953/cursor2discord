@@ -3,9 +3,9 @@
   "description": "Publishes what Claude Code is doing to a local sidecar file, so the cursor2discord Cursor extension can show it on your Discord profile.",
   "version": "0.1.0",
   "author": {
-    "name": "EnrinJr"
+    "name": "emd5953"
   },
-  "homepage": "https://github.com/EnrinJr/cursor2discord",
-  "repository": "https://github.com/EnrinJr/cursor2discord",
+  "homepage": "https://github.com/emd5953/cursor2discord",
+  "repository": "https://github.com/emd5953/cursor2discord",
   "license": "MIT"
 }

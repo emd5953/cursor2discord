@@ -104,7 +104,7 @@ merges into the existing file rather than replacing it.
 ### Plugin
 
 A `plugins/cursor2discord/` directory in this repo, installable as
-`/plugin marketplace add EnrinJr/cursor2discord` then `/plugin install cursor2discord`.
+`/plugin marketplace add emd5953/cursor2discord` then `/plugin install cursor2discord`.
 
 ```
 plugins/cursor2discord/
@@ -200,7 +200,7 @@ On first detection of a Claude Code session with no sidecar, one non-modal notif
 `Show me how` opens a walkthrough with two copyable commands, not an automated write:
 
 ```
-/plugin marketplace add EnrinJr/cursor2discord
+/plugin marketplace add emd5953/cursor2discord
 /plugin install cursor2discord          → tool, file, duration, model
 /cursor2discord:enable-tokens           → adds tokens and session title
 ```

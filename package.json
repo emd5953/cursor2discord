@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/EnrinJr/cursor2discord.git"
+    "url": "https://github.com/emd5953/cursor2discord.git"
   },
   "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host — omitting this breaks Remote-SSH and devcontainers entirely.",
   "extensionKind": [

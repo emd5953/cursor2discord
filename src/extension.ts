@@ -22,7 +22,7 @@ Run these inside Claude Code, in any session.
 
 ## 1. Add the marketplace
 
-    /plugin marketplace add EnrinJr/cursor2discord
+    /plugin marketplace add emd5953/cursor2discord
 
 ## 2. Install the plugin
 

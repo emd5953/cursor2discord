@@ -7,7 +7,7 @@
  * change what every installed copy renders.
  */
 const ASSET_REF = "main";
-const ASSET_BASE = `https://cdn.jsdelivr.net/gh/EnrinJr/cursor2discord@${ASSET_REF}/assets`;
+const ASSET_BASE = `https://cdn.jsdelivr.net/gh/emd5953/cursor2discord@${ASSET_REF}/assets`;
 
 export interface Asset {
   readonly key: string;

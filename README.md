@@ -16,7 +16,7 @@ Claude Code.
 ## Install
 
 **Cursor** — download the latest `.vsix` from
-[Releases](https://github.com/EnrinJr/cursor2discord/releases) and:
+[Releases](https://github.com/emd5953/cursor2discord/releases) and:
 
 ```bash
 cursor --install-extension cursor2discord-*.vsix
@@ -46,7 +46,7 @@ the session title and token usage, install the companion Claude Code plugin.
 Inside Claude Code:
 
 ```
-/plugin marketplace add EnrinJr/cursor2discord
+/plugin marketplace add emd5953/cursor2discord
 /plugin install cursor2discord
 ```
 
