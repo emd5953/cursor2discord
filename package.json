@@ -1,9 +1,9 @@
 {
   "name": "cursor2discord",
   "displayName": "cursor2discord",
-  "description": "Discord Rich Presence for Cursor — shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
+  "description": "Discord Rich Presence for Cursor \u2014 shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
   "version": "0.1.0",
-  "publisher": "enrinjr",
+  "publisher": "emd5953",
   "license": "MIT",
   "engines": {
     "vscode": "^1.93.0"
@@ -26,7 +26,7 @@
     "type": "git",
     "url": "https://github.com/emd5953/cursor2discord.git"
   },
-  "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host — omitting this breaks Remote-SSH and devcontainers entirely.",
+  "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host \u2014 omitting this breaks Remote-SSH and devcontainers entirely.",
   "extensionKind": [
     "ui"
   ],
@@ -116,7 +116,7 @@
         "cursor2discord.claudeCode.liveActivity": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Show what Claude Code is actually doing — current tool, file, session title, tokens — when the `cursor2discord` Claude Code plugin is installed. Without the plugin this has no effect and the presence falls back to a plain \"Claude Code\" state."
+          "markdownDescription": "Show what Claude Code is actually doing \u2014 current tool, file, session title, tokens \u2014 when the `cursor2discord` Claude Code plugin is installed. Without the plugin this has no effect and the presence falls back to a plain \"Claude Code\" state."
         },
         "cursor2discord.claudeCode.showTokens": {
           "type": "boolean",
@@ -186,7 +186,7 @@
         },
         "cursor2discord.templates.editing.state": {
           "type": "string",
-          "default": "{workspace} — {branch}",
+          "default": "{workspace} \u2014 {branch}",
           "description": "Line 2 while editing."
         },
         "cursor2discord.templates.idle.details": {
@@ -201,7 +201,7 @@
         },
         "cursor2discord.templates.claudeCode.details": {
           "type": "string",
-          "default": "Claude Code — {claudeActivity}",
+          "default": "Claude Code \u2014 {claudeActivity}",
           "markdownDescription": "Line 1 during a Claude Code session. Extra variables: `{claudeActivity}` (e.g. `editing client.ts`), `{tool}` `{verb}` `{target}` `{model}` `{sessionTitle}` `{tokensIn}` `{tokensOut}` `{contextPercent}`. All require the Claude Code plugin and collapse away without it."
         },
         "cursor2discord.templates.claudeCode.state": {
@@ -216,7 +216,7 @@
         },
         "cursor2discord.templates.cursorAi.state": {
           "type": "string",
-          "default": "{workspace} — {branch}",
+          "default": "{workspace} \u2014 {branch}",
           "description": "Line 2 during Cursor AI activity."
         },
         "cursor2discord.buttons": {
