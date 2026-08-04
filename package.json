@@ -253,7 +253,8 @@
     "watch": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "package": "npm run build && vsce package --no-dependencies"
+    "package": "npm run build && vsce package --no-dependencies",
+    "publish:ovsx": "npm run package && ovsx publish cursor2discord-$npm_package_version.vsix"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.3.4"
@@ -262,6 +263,7 @@
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.93.0",
     "@vscode/vsce": "^3.2.0",
+    "ovsx": "^0.10.1",
     "tsup": "^8.5.1",
     "tsx": "^4.23.5",
     "typescript": "^5.7.0"

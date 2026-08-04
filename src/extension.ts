@@ -5,6 +5,7 @@ import { Leadership } from "./leader.js";
 import { initLog, log } from "./log.js";
 import { build } from "./presence/build.js";
 import { ClaudeSessionProvider } from "./providers/claudeSession.js";
+import { CursorAiProvider } from "./providers/cursorAi.js";
 import { EditorProvider } from "./providers/editor.js";
 import { GitProvider } from "./providers/git.js";
 import { IdleProvider } from "./providers/idle.js";
@@ -57,6 +58,7 @@ class Runtime implements vscode.Disposable {
   private idle!: IdleProvider;
   private terminal!: TerminalProvider;
   private claudeSession!: ClaudeSessionProvider;
+  private cursorAi!: CursorAiProvider;
   private suppressed = false;
   private offeredPlugin = false;
 
@@ -70,13 +72,17 @@ class Runtime implements vscode.Disposable {
     this.terminal = new TerminalProvider(this.store, this.config);
     this.claudeSession = new ClaudeSessionProvider(this.store, this.config);
 
+    const git = new GitProvider(this.store);
+    this.cursorAi = new CursorAiProvider(this.store, this.config, git.onDidChangeHead);
+
     this.disposables.push(
       this.editor,
       this.idle,
       this.terminal,
       this.claudeSession,
+      this.cursorAi,
       new WorkspaceProvider(this.store),
-      new GitProvider(this.store),
+      git,
       this.store,
       this.client,
       this.statusBar,
@@ -98,6 +104,7 @@ class Runtime implements vscode.Disposable {
     this.idle.updateConfig(config);
     this.terminal.updateConfig(config);
     this.claudeSession.updateConfig(config);
+    this.cursorAi.updateConfig(config);
     this.applyEnablement();
     if (!this.suppressed && !wasSuppressed) this.publish();
     this.renderStatusBar(this.client.connectionState);
