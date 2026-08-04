@@ -85,6 +85,11 @@ function fromHook(payload) {
   const base = {
     cwd: str(payload.cwd),
     updatedAt: Date.now(),
+    // The hook runs as a child of `claude`, so the parent pid identifies the
+    // session process. The extension checks it for liveness: hooks only fire
+    // on tool calls and turn ends, so a session waiting at the prompt emits
+    // nothing, and a timestamp alone would make it look dead.
+    pid: typeof process.ppid === "number" ? process.ppid : null,
   };
 
   if (event === "SessionStart") {
@@ -118,6 +123,7 @@ function fromStatusLine(payload) {
   return {
     cwd: str(payload.workspace?.current_dir) ?? str(payload.cwd),
     updatedAt: Date.now(),
+    pid: typeof process.ppid === "number" ? process.ppid : null,
     sessionTitle: str(payload.session_name),
     model: str(payload.model?.display_name),
     durationMs: num(cost.total_duration_ms),
@@ -179,6 +185,7 @@ function merge(sessionId, fragment) {
   const previous = read(sessionId) ?? {
     version: SIDECAR_VERSION,
     sessionId,
+    pid: null,
     cwd: null,
     sessionTitle: null,
     model: null,

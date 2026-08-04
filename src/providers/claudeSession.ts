@@ -22,12 +22,19 @@ import { log } from "../log.js";
 const SIDECAR_VERSION = 1;
 const DEBOUNCE_MS = 250;
 const SWEEP_MS = 10_000;
-/** A `kill -9`'d Claude never runs SessionEnd, so its file is reaped on age. */
-const STALE_MS = 60_000;
+/**
+ * Fallback reaping age, used only when a sidecar carries no pid.
+ *
+ * It is generous on purpose: hooks fire on tool calls and turn ends, so a
+ * session waiting at the prompt writes nothing for as long as the user takes
+ * to type. Treating quiet as dead would drop the presence mid-session.
+ */
+const STALE_MS = 6 * 60 * 60 * 1000;
 
 interface Sidecar {
   readonly version: number;
   readonly sessionId: string;
+  readonly pid: number | null;
   readonly cwd: string | null;
   readonly sessionTitle: string | null;
   readonly model: string | null;
@@ -108,7 +115,7 @@ export class ClaudeSessionProvider implements vscode.Disposable {
 
     let best: Sidecar | undefined;
     for (const sidecar of this.readAll()) {
-      if (now - sidecar.updatedAt > STALE_MS) continue;
+      if (!isLive(sidecar, now)) continue;
       if (folder && !belongsTo(sidecar.cwd, folder)) continue;
       // Most recently updated wins when one workspace has several sessions.
       if (!best || sidecar.updatedAt > best.updatedAt) best = sidecar;
@@ -156,6 +163,29 @@ export class ClaudeSessionProvider implements vscode.Disposable {
   dispose(): void {
     this.stop();
     for (const disposable of this.disposables) disposable.dispose();
+  }
+}
+
+/**
+ * Is the session behind this sidecar still running?
+ *
+ * A hard-killed `claude` never runs SessionEnd, so a stale file has to be
+ * reaped somehow — but an idle session is indistinguishable from a dead one by
+ * timestamp alone. The pid settles it; the age check is only for sidecars
+ * written by a plugin version that didn't record one.
+ */
+function isLive(sidecar: Sidecar, now: number): boolean {
+  if (typeof sidecar.pid === "number") return isAlive(sidecar.pid);
+  return now - sidecar.updatedAt <= STALE_MS;
+}
+
+/** `kill(pid, 0)` throws ESRCH for a dead process without signalling it. */
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM";
   }
 }
 
