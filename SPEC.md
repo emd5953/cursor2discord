@@ -379,13 +379,16 @@ low-stakes and reversible.
 
 Each leaves the repo working and installable.
 
-| # | Scope | Exit criterion |
-|---|---|---|
-| **M1** | Skeleton, config, log, status bar, client + backoff + throttle, editor/workspace/git providers, `editing` + `idle` | vscord core parity, correct under rate limiting |
-| **M2** | `leader.ts` | 4 windows, zero flicker, focus-follows |
-| **M3** | Claude Code detection + fallback | §Behavior command table passes |
-| **M4** | Cursor AI heuristic | ≤1 false positive per hour of normal editing |
-| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor |
+| # | Scope | Exit criterion | Status |
+|---|---|---|---|
+| **M1** | Skeleton, config, log, status bar, client + backoff + throttle, editor/workspace/git providers, `editing` + `idle` | vscord core parity, correct under rate limiting | **done** |
+| **M2** | `leader.ts` | 4 windows, zero flicker, focus-follows | **done** |
+| **M3** | Claude Code detection + fallback | §Behavior command table passes | **done** |
+| **M4** | Cursor AI heuristic | ≤1 false positive per hour of normal editing | |
+| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor | icons done; README and OpenVSX open |
+
+Extended after M3 by [Claude Code live activity](docs/specs/claude-code-live.md), which
+replaces M3's fixed string with the agent's current tool, file, session title and tokens.
 
 M1–M3 are the product. M4 is the differentiator and the only piece resting on inference; it
 ships behind a setting that can be turned off without degrading anything else.

@@ -6,6 +6,9 @@
 plugins/**
 .claude-plugin/**
 docs/**
+# Icons are fetched from jsDelivr at runtime, never read from disk.
+assets/**
+scripts/**
 tsconfig.json
 tsup.config.ts
 node_modules/**
