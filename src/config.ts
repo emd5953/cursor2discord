@@ -24,6 +24,10 @@ export interface Config {
   readonly idleBehavior: IdleBehavior;
   readonly detectClaudeCode: boolean;
   readonly claudeCodeCommands: readonly string[];
+  readonly claudeCode: {
+    readonly liveActivity: boolean;
+    readonly showTokens: boolean;
+  };
   readonly detectCursorAi: boolean;
   readonly priority: readonly ActivityKind[];
   readonly privacy: {
@@ -53,6 +57,10 @@ export function readConfig(): Config {
     idleBehavior: c.get<IdleBehavior>("idleBehavior", "showIdle"),
     detectClaudeCode: c.get<boolean>("detectClaudeCode", true),
     claudeCodeCommands: c.get<string[]>("claudeCodeCommands", ["claude", "claude-code"]),
+    claudeCode: {
+      liveActivity: c.get<boolean>("claudeCode.liveActivity", true),
+      showTokens: c.get<boolean>("claudeCode.showTokens", true),
+    },
     detectCursorAi: c.get<boolean>("detectCursorAi", true),
     priority: c.get<ActivityKind[]>("priority", ["claudeCode", "cursorAi", "editing", "idle"]),
     privacy: {

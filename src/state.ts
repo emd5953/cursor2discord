@@ -23,11 +23,36 @@ export interface GitState {
   readonly remoteUrl: string | null;
 }
 
+/**
+ * Detail published by the Claude Code plugin, when it is installed. Kept
+ * separate from `claudeCode` rather than merged into it: `terminal.ts` and
+ * `claudeSession.ts` write independently, and a shared field would mean
+ * whichever patched last wins.
+ */
+export interface ClaudeLiveState {
+  readonly sessionId: string;
+  readonly startedAt: number;
+  readonly sessionTitle: string | null;
+  readonly model: string | null;
+  readonly activity: {
+    readonly tool: string;
+    readonly verb: string;
+    readonly target: string | null;
+  } | null;
+  readonly tokens: {
+    readonly input: number;
+    readonly output: number;
+    readonly usedPercentage: number;
+  } | null;
+}
+
 export interface Snapshot {
   readonly editor: EditorState | null;
   readonly workspace: WorkspaceState | null;
   readonly git: GitState | null;
   readonly claudeCode: { readonly sessions: number; readonly since: number | null };
+  /** Null when the plugin is not installed; `terminal.ts` is then the only signal. */
+  readonly claudeLive: ClaudeLiveState | null;
   readonly cursorAi: {
     readonly active: boolean;
     readonly since: number | null;
@@ -47,6 +72,7 @@ function initial(now: number): Snapshot {
     workspace: null,
     git: null,
     claudeCode: { sessions: 0, since: null },
+    claudeLive: null,
     cursorAi: { active: false, since: null, confidence: 0 },
     focused: vscode.window.state.focused,
     unfocusedSince: vscode.window.state.focused ? null : now,

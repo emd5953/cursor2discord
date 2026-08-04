@@ -15,13 +15,37 @@ export function resolveVariables(
   snapshot: Snapshot,
   config: Config,
 ): Readonly<Record<string, string | null>> {
-  const { editor, workspace, git } = snapshot;
+  const { editor, workspace, git, claudeLive } = snapshot;
   const mode = config.privacy.mode;
 
   const hideFiles = mode === "hideFileNames" || mode === "minimal";
   const hideWorkspace = mode === "hideWorkspace" || mode === "minimal";
 
+  const activity = claudeLive?.activity ?? null;
+  const target = activity?.target ?? null;
+  // The target is a file name Claude is touching, so it answers to the same
+  // rules as the file the user has open.
+  const hideTarget = hideFiles || (target !== null && matchesIgnored(target, config));
+  const tokens = config.claudeCode.showTokens ? (claudeLive?.tokens ?? null) : null;
+
   return {
+    tool: activity?.tool ?? null,
+    verb: activity?.verb ?? null,
+    target: hideTarget ? null : target,
+    // Composed here rather than in a template so the "no separator left
+    // dangling" case is one string, not three variables to reconcile.
+    claudeActivity: activity
+      ? hideTarget || !target
+        ? activity.verb
+        : `${activity.verb} ${target}`
+      : null,
+    // AI-generated from the user's prompt, so it reveals at least as much as a
+    // file name does.
+    sessionTitle: hideWorkspace ? null : (claudeLive?.sessionTitle ?? null),
+    model: claudeLive?.model ?? null,
+    tokensIn: tokens ? String(tokens.input) : null,
+    tokensOut: tokens ? String(tokens.output) : null,
+    contextPercent: tokens ? String(tokens.usedPercentage) : null,
     file: hideFiles ? null : (editor?.fileName ?? null),
     ext: hideFiles ? null : (extensionOf(editor?.fileName) ?? null),
     relPath: hideFiles || hideWorkspace ? null : (editor?.relPath ?? null),
@@ -87,8 +111,30 @@ function isSeparator(text: string): boolean {
   return /^[\s\-—–|·:,/([\])]*$/.test(text);
 }
 
+/**
+ * Neighbour removal handles a hole *between* two values, but not one at either
+ * end — `"Claude Code — {claudeActivity}"` with no activity would otherwise
+ * render as `"Claude Code —"`. Strip joining punctuation off both ends.
+ */
 function collapse(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-—–|·:,/]+/, "")
+    .replace(/[\s\-—–|·:,/]+$/, "")
+    .trim();
+}
+
+function matchesIgnored(fileName: string, config: Config): boolean {
+  // Patterns are globs over paths; a bare file name only ever matches the
+  // basename portion, which is all the plugin gives us.
+  return config.privacy.ignoredFiles.some((pattern) => {
+    const base = pattern.split("/").pop() ?? pattern;
+    const regexp = new RegExp(
+      `^${base.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".")}$`,
+      "i",
+    );
+    return regexp.test(fileName);
+  });
 }
 
 function extensionOf(fileName: string | undefined): string | null {

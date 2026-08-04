@@ -1,0 +1,14 @@
+{
+  "name": "cursor2discord",
+  "owner": {
+    "name": "EnrinJr",
+    "url": "https://github.com/EnrinJr"
+  },
+  "plugins": [
+    {
+      "name": "cursor2discord",
+      "source": "./plugins/cursor2discord",
+      "description": "Publishes what Claude Code is doing to a local file, so the cursor2discord Cursor extension can show it on your Discord profile."
+    }
+  ]
+}

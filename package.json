@@ -51,6 +51,11 @@
         "command": "cursor2discord.showLog",
         "title": "Rich Presence: Show Log",
         "category": "cursor2discord"
+      },
+      {
+        "command": "cursor2discord.setUpClaudeCode",
+        "title": "Rich Presence: Set Up Claude Code Details",
+        "category": "cursor2discord"
       }
     ],
     "configuration": {
@@ -107,6 +112,16 @@
             "claude-code"
           ],
           "description": "Command names that count as a Claude Code session."
+        },
+        "cursor2discord.claudeCode.liveActivity": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show what Claude Code is actually doing — current tool, file, session title, tokens — when the `cursor2discord` Claude Code plugin is installed. Without the plugin this has no effect and the presence falls back to a plain \"Claude Code\" state."
+        },
+        "cursor2discord.claudeCode.showTokens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include token counts and context usage in the icon hover text. Requires the token tier (/cursor2discord:enable-tokens)."
         },
         "cursor2discord.detectCursorAi": {
           "type": "boolean",
@@ -186,13 +201,13 @@
         },
         "cursor2discord.templates.claudeCode.details": {
           "type": "string",
-          "default": "Running Claude Code",
-          "description": "Line 1 during a Claude Code session."
+          "default": "Claude Code — {claudeActivity}",
+          "markdownDescription": "Line 1 during a Claude Code session. Extra variables: `{claudeActivity}` (e.g. `editing client.ts`), `{tool}` `{verb}` `{target}` `{model}` `{sessionTitle}` `{tokensIn}` `{tokensOut}` `{contextPercent}`. All require the Claude Code plugin and collapse away without it."
         },
         "cursor2discord.templates.claudeCode.state": {
           "type": "string",
-          "default": "{workspace} — {branch}",
-          "description": "Line 2 during a Claude Code session."
+          "default": "{sessionTitle}",
+          "description": "Line 2 during a Claude Code session. Falls back to the editing line when no session title is available."
         },
         "cursor2discord.templates.cursorAi.details": {
           "type": "string",

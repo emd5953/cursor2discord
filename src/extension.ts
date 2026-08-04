@@ -4,6 +4,7 @@ import { DiscordClient, type ConnectionState } from "./client.js";
 import { Leadership } from "./leader.js";
 import { initLog, log } from "./log.js";
 import { build } from "./presence/build.js";
+import { ClaudeSessionProvider } from "./providers/claudeSession.js";
 import { EditorProvider } from "./providers/editor.js";
 import { GitProvider } from "./providers/git.js";
 import { IdleProvider } from "./providers/idle.js";
@@ -13,6 +14,36 @@ import { Store } from "./state.js";
 import { matchGlob } from "./util/glob.js";
 
 let runtime: Runtime | undefined;
+
+const CLAUDE_CODE_SETUP = `# Show what Claude Code is doing
+
+Run these inside Claude Code, in any session.
+
+## 1. Add the marketplace
+
+    /plugin marketplace add EnrinJr/cursor2discord
+
+## 2. Install the plugin
+
+    /plugin install cursor2discord
+
+Your Discord card now shows the tool Claude is running and the file it's touching:
+
+    Claude Code — editing client.ts
+
+This adds hooks inside the plugin. It does not touch your \`~/.claude/settings.json\`.
+Remove it any time with \`/plugin uninstall cursor2discord\`.
+
+## 3. Optional — add tokens
+
+    /cursor2discord:enable-tokens
+
+Adds token counts, context usage, the model name and the session title.
+
+This one does change \`~/.claude/settings.json\`, because Claude Code only exposes token
+data to a \`statusLine\` command and that setting is user-scoped. Claude Code makes the
+edit itself and shows you the diff. Undo it with \`/statusline delete\`.
+`;
 
 class Runtime implements vscode.Disposable {
   private config: Config;
@@ -25,7 +56,9 @@ class Runtime implements vscode.Disposable {
   private editor!: EditorProvider;
   private idle!: IdleProvider;
   private terminal!: TerminalProvider;
+  private claudeSession!: ClaudeSessionProvider;
   private suppressed = false;
+  private offeredPlugin = false;
 
   constructor() {
     this.config = readConfig();
@@ -35,11 +68,13 @@ class Runtime implements vscode.Disposable {
     this.editor = new EditorProvider(this.store, this.config);
     this.idle = new IdleProvider(this.store, this.config, () => this.publish());
     this.terminal = new TerminalProvider(this.store, this.config);
+    this.claudeSession = new ClaudeSessionProvider(this.store, this.config);
 
     this.disposables.push(
       this.editor,
       this.idle,
       this.terminal,
+      this.claudeSession,
       new WorkspaceProvider(this.store),
       new GitProvider(this.store),
       this.store,
@@ -62,6 +97,7 @@ class Runtime implements vscode.Disposable {
     this.editor.updateConfig(config);
     this.idle.updateConfig(config);
     this.terminal.updateConfig(config);
+    this.claudeSession.updateConfig(config);
     this.applyEnablement();
     if (!this.suppressed && !wasSuppressed) this.publish();
     this.renderStatusBar(this.client.connectionState);
@@ -97,7 +133,39 @@ class Runtime implements vscode.Disposable {
     this.renderStatusBar(this.client.connectionState);
   }
 
+  /**
+   * A Claude Code session with no sidecar means the plugin isn't installed and
+   * the card is showing the bare fallback. Offer the upgrade once, then never
+   * again — and offer instructions, never an automated write to their config.
+   */
+  private maybeOfferPlugin(): void {
+    if (this.offeredPlugin) return;
+    if (!this.config.claudeCode.liveActivity) return;
+
+    const snapshot = this.store.current;
+    if (snapshot.claudeCode.sessions === 0 || snapshot.claudeLive !== null) return;
+
+    this.offeredPlugin = true;
+    void vscode.window
+      .showInformationMessage(
+        "Show what Claude Code is actually doing — the tool, the file, tokens?",
+        "Show me how",
+        "Not now",
+        "Never",
+      )
+      .then((choice) => {
+        if (choice === "Show me how") {
+          void vscode.commands.executeCommand("cursor2discord.setUpClaudeCode");
+        } else if (choice === "Never") {
+          void vscode.workspace
+            .getConfiguration("cursor2discord")
+            .update("claudeCode.liveActivity", false, vscode.ConfigurationTarget.Global);
+        }
+      });
+  }
+
   private publish(): void {
+    this.maybeOfferPlugin();
     if (!this.config.enabled || this.suppressed || !this.leadership.isLeader) return;
     const activity = build(this.store.current, this.config);
     this.client.setActivity(activity);
@@ -181,6 +249,15 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("cursor2discord.reconnect", () => runtime?.reconnect()),
     vscode.commands.registerCommand("cursor2discord.disconnect", () => runtime?.disconnect()),
     vscode.commands.registerCommand("cursor2discord.showLog", () => log.show()),
+    vscode.commands.registerCommand("cursor2discord.setUpClaudeCode", async () => {
+      // Instructions, not automation. Both steps mutate Claude Code's own
+      // configuration, so Claude Code performs them, with the user approving.
+      const document = await vscode.workspace.openTextDocument({
+        language: "markdown",
+        content: CLAUDE_CODE_SETUP,
+      });
+      await vscode.window.showTextDocument(document, { preview: false });
+    }),
     vscode.commands.registerCommand("cursor2discord.toggle", async () => {
       const settings = vscode.workspace.getConfiguration("cursor2discord");
       const next = !settings.get<boolean>("enabled", true);

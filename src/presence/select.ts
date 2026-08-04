@@ -5,13 +5,22 @@ import type { Snapshot } from "../state.js";
  * First predicate in `priority` order wins. Priority is config rather than
  * hardcoded so "I'd rather see my file than my agent" is a setting, not a fork.
  */
+/**
+ * Either signal counts. The sidecar is the richer one but needs the plugin;
+ * `terminal.ts`'s boolean works for everyone else, and during the gap between
+ * `claude` starting and its first hook firing.
+ */
+export function isClaudeActive(snapshot: Snapshot): boolean {
+  return snapshot.claudeLive !== null || snapshot.claudeCode.sessions > 0;
+}
+
 export function select(snapshot: Snapshot, config: Config): ActivityKind {
   const idle = isIdle(snapshot, config);
 
   for (const kind of config.priority) {
     switch (kind) {
       case "claudeCode":
-        if (config.detectClaudeCode && snapshot.claudeCode.sessions > 0) return "claudeCode";
+        if (config.detectClaudeCode && isClaudeActive(snapshot)) return "claudeCode";
         break;
       case "cursorAi":
         if (config.detectCursorAi && snapshot.cursorAi.active) return "cursorAi";
@@ -35,7 +44,7 @@ export function select(snapshot: Snapshot, config: Config): ActivityKind {
  */
 export function isIdle(snapshot: Snapshot, config: Config): boolean {
   // An agent working while you read Twitter is exactly the state worth showing.
-  if (config.detectClaudeCode && snapshot.claudeCode.sessions > 0) return false;
+  if (config.detectClaudeCode && isClaudeActive(snapshot)) return false;
 
   const timeout = config.idleTimeoutSeconds;
   if (timeout <= 0) return false;
