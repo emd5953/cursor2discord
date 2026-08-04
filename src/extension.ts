@@ -16,6 +16,9 @@ import { matchGlob } from "./util/glob.js";
 
 let runtime: Runtime | undefined;
 
+/** Survives reloads, so the Claude Code offer is shown once per machine. */
+const OFFERED_KEY = "claudeCode.pluginOffered";
+
 const CLAUDE_CODE_SETUP = `# Show what Claude Code is doing
 
 Run these inside Claude Code, in any session.
@@ -60,9 +63,8 @@ class Runtime implements vscode.Disposable {
   private claudeSession!: ClaudeSessionProvider;
   private cursorAi!: CursorAiProvider;
   private suppressed = false;
-  private offeredPlugin = false;
 
-  constructor() {
+  constructor(private readonly context: vscode.ExtensionContext) {
     this.config = readConfig();
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     this.statusBar.command = "cursor2discord.toggle";
@@ -144,15 +146,19 @@ class Runtime implements vscode.Disposable {
    * A Claude Code session with no sidecar means the plugin isn't installed and
    * the card is showing the bare fallback. Offer the upgrade once, then never
    * again — and offer instructions, never an automated write to their config.
+   *
+   * "Once" has to outlive the extension host: the flag lives in globalState
+   * because it was previously in memory, so every window reload re-asked, and
+   * every open window asked separately.
    */
   private maybeOfferPlugin(): void {
-    if (this.offeredPlugin) return;
+    if (this.context.globalState.get<boolean>(OFFERED_KEY)) return;
     if (!this.config.claudeCode.liveActivity) return;
 
     const snapshot = this.store.current;
     if (snapshot.claudeCode.sessions === 0 || snapshot.claudeLive !== null) return;
 
-    this.offeredPlugin = true;
+    void this.context.globalState.update(OFFERED_KEY, true);
     void vscode.window
       .showInformationMessage(
         "Show what Claude Code is actually doing — the tool, the file, tokens?",
@@ -249,7 +255,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(initLog());
   log.info("cursor2discord activating");
 
-  runtime = new Runtime();
+  runtime = new Runtime(context);
   context.subscriptions.push(runtime);
 
   context.subscriptions.push(
