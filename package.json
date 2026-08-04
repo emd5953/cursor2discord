@@ -1,0 +1,254 @@
+{
+  "name": "cursor2discord",
+  "displayName": "cursor2discord",
+  "description": "Discord Rich Presence for Cursor — shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
+  "version": "0.1.0",
+  "publisher": "enrinjr",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "discord",
+    "rich presence",
+    "rpc",
+    "cursor",
+    "claude code"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EnrinJr/cursor2discord.git"
+  },
+  "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host — omitting this breaks Remote-SSH and devcontainers entirely.",
+  "extensionKind": [
+    "ui"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursor2discord.reconnect",
+        "title": "Rich Presence: Reconnect to Discord",
+        "category": "cursor2discord"
+      },
+      {
+        "command": "cursor2discord.disconnect",
+        "title": "Rich Presence: Disconnect",
+        "category": "cursor2discord"
+      },
+      {
+        "command": "cursor2discord.toggle",
+        "title": "Rich Presence: Toggle Enabled",
+        "category": "cursor2discord"
+      },
+      {
+        "command": "cursor2discord.showLog",
+        "title": "Rich Presence: Show Log",
+        "category": "cursor2discord"
+      }
+    ],
+    "configuration": {
+      "title": "cursor2discord",
+      "properties": {
+        "cursor2discord.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Discord Rich Presence."
+        },
+        "cursor2discord.applicationId": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Discord application ID, which controls the name and icon shown after \"Playing\". Leave blank to use the bundled default. Icons are served from a URL and never need uploading, so a custom ID needs no further setup."
+        },
+        "cursor2discord.showElapsedTime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show elapsed time on the presence."
+        },
+        "cursor2discord.elapsedTimeResetsOnFileChange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Reset the elapsed timer whenever you switch files, instead of counting the whole session."
+        },
+        "cursor2discord.idleTimeoutSeconds": {
+          "type": "number",
+          "default": 300,
+          "minimum": 0,
+          "description": "Seconds of inactivity before switching to the idle presence. 0 disables idle detection."
+        },
+        "cursor2discord.idleBehavior": {
+          "type": "string",
+          "enum": [
+            "showIdle",
+            "clearPresence",
+            "ignore"
+          ],
+          "default": "showIdle",
+          "description": "What to do once idle."
+        },
+        "cursor2discord.detectClaudeCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Watch the integrated terminal for Claude Code sessions and surface them in the presence. Requires shell integration."
+        },
+        "cursor2discord.claudeCodeCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "claude",
+            "claude-code"
+          ],
+          "description": "Command names that count as a Claude Code session."
+        },
+        "cursor2discord.detectCursorAi": {
+          "type": "boolean",
+          "default": true,
+          "description": "Surface Cursor AI activity (Composer / Chat / inline edits) in the presence."
+        },
+        "cursor2discord.priority": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "claudeCode",
+              "cursorAi",
+              "editing",
+              "idle"
+            ]
+          },
+          "default": [
+            "claudeCode",
+            "cursorAi",
+            "editing",
+            "idle"
+          ],
+          "description": "Which activity wins when several are active at once, highest first."
+        },
+        "cursor2discord.privacy.mode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "hideFileNames",
+            "hideWorkspace",
+            "minimal"
+          ],
+          "default": "full",
+          "markdownDescription": "How much to reveal.\n- `full`: file names, workspace, git branch\n- `hideFileNames`: language only\n- `hideWorkspace`: file names but no workspace/repo\n- `minimal`: just \"Working in Cursor\""
+        },
+        "cursor2discord.privacy.ignoredWorkspaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Glob patterns for workspace paths where presence is suppressed entirely."
+        },
+        "cursor2discord.privacy.ignoredFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/.env",
+            "**/.env.*",
+            "**/*.pem",
+            "**/*.key"
+          ],
+          "description": "Glob patterns for files whose names are never shown."
+        },
+        "cursor2discord.templates.editing.details": {
+          "type": "string",
+          "default": "Editing {file}",
+          "markdownDescription": "Line 1 while editing. Variables: `{file}` `{ext}` `{language}` `{workspace}` `{repo}` `{branch}` `{line}` `{lineCount}` `{column}` `{problems}`"
+        },
+        "cursor2discord.templates.editing.state": {
+          "type": "string",
+          "default": "{workspace} — {branch}",
+          "description": "Line 2 while editing."
+        },
+        "cursor2discord.templates.idle.details": {
+          "type": "string",
+          "default": "Idle",
+          "description": "Line 1 while idle."
+        },
+        "cursor2discord.templates.idle.state": {
+          "type": "string",
+          "default": "in {workspace}",
+          "description": "Line 2 while idle."
+        },
+        "cursor2discord.templates.claudeCode.details": {
+          "type": "string",
+          "default": "Running Claude Code",
+          "description": "Line 1 during a Claude Code session."
+        },
+        "cursor2discord.templates.claudeCode.state": {
+          "type": "string",
+          "default": "{workspace} — {branch}",
+          "description": "Line 2 during a Claude Code session."
+        },
+        "cursor2discord.templates.cursorAi.details": {
+          "type": "string",
+          "default": "Vibing with Cursor AI",
+          "description": "Line 1 during Cursor AI activity."
+        },
+        "cursor2discord.templates.cursorAi.state": {
+          "type": "string",
+          "default": "{workspace} — {branch}",
+          "description": "Line 2 during Cursor AI activity."
+        },
+        "cursor2discord.buttons": {
+          "type": "array",
+          "default": [],
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "label",
+              "url"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          },
+          "markdownDescription": "Up to two buttons. `url` supports `{repoUrl}`, which is dropped if the workspace has no remote."
+        },
+        "cursor2discord.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a status bar item with the connection state."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "package": "npm run build && vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@xhayper/discord-rpc": "^1.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.93.0",
+    "@vscode/vsce": "^3.2.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.5",
+    "typescript": "^5.7.0"
+  }
+}

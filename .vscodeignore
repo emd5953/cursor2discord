@@ -1,0 +1,8 @@
+# src/ is kept so the bundled sourcemap resolves, but nothing test- or
+# build-related belongs in a shipped extension.
+**/*.test.ts
+tsconfig.json
+tsup.config.ts
+node_modules/**
+scratchpad/**
+*.vsix
