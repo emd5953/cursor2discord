@@ -384,8 +384,8 @@ Each leaves the repo working and installable.
 | **M1** | Skeleton, config, log, status bar, client + backoff + throttle, editor/workspace/git providers, `editing` + `idle` | vscord core parity, correct under rate limiting | **done** |
 | **M2** | `leader.ts` | 4 windows, zero flicker, focus-follows | **done** |
 | **M3** | Claude Code detection + fallback | §Behavior command table passes | **done** |
-| **M4** | Cursor AI heuristic | ≤1 false positive per hour of normal editing | |
-| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor | icons done; README and OpenVSX open |
+| **M4** | Cursor AI heuristic | ≤1 false positive per hour of normal editing | code shipped; FP rate not yet measured (`docs/QA.md` §5) |
+| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor | icons, README, `.vsix` and v0.1.0 release done; OpenVSX publish open |
 
 Extended after M3 by [Claude Code live activity](docs/specs/claude-code-live.md), which
 replaces M3's fixed string with the agent's current tool, file, session title and tokens.
