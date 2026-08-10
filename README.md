@@ -15,14 +15,19 @@ Claude Code.
 
 ## Install
 
-**Cursor** — download the latest `.vsix` from
-[Releases](https://github.com/emd5953/cursor2discord/releases) and:
+Search **cursor2discord** in Cursor's extensions panel — Cursor uses
+[Open VSX](https://open-vsx.org/extension/emd5953/cursor2discord), where this is published.
+
+Or from the command line:
 
 ```bash
-cursor --install-extension cursor2discord-*.vsix
+cursor --install-extension emd5953.cursor2discord
 ```
 
-Or from the extensions panel: `…` → **Install from VSIX**.
+If your build can't reach Open VSX, download the `.vsix` from
+[Releases](https://github.com/emd5953/cursor2discord/releases) and use
+`cursor --install-extension cursor2discord-*.vsix`, or the extensions panel's
+`…` → **Install from VSIX**.
 
 Then reload the window. That's it — no Discord app to register, no configuration.
 

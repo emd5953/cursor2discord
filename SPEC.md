@@ -385,7 +385,7 @@ Each leaves the repo working and installable.
 | **M2** | `leader.ts` | 4 windows, zero flicker, focus-follows | **done** |
 | **M3** | Claude Code detection + fallback | §Behavior command table passes | **done** |
 | **M4** | Cursor AI heuristic | ≤1 false positive per hour of normal editing | code shipped; FP rate not yet measured (`docs/QA.md` §5) |
-| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor | icons, README, `.vsix` and v0.1.0 release done; OpenVSX publish open |
+| **M5** | Assets, README, `.vsix` + OpenVSX packaging | installable in Cursor | **done** — v0.1.0 on Open VSX as `emd5953.cursor2discord` |
 
 Extended after M3 by [Claude Code live activity](docs/specs/claude-code-live.md), which
 replaces M3's fixed string with the agent's current tool, file, session title and tokens.
