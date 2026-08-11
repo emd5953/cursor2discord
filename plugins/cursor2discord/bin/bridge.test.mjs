@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { fromHook, statusLineText } from "./bridge.mjs";
+import { fromHook, statusLineText, targetOf } from "./bridge.mjs";
 
 /**
  * The bridge's contract with the extension is the `activity` field, and the
@@ -52,6 +52,62 @@ describe("activity lifecycle", () => {
     const out = fromHook({ ...base, hook_event_name: "Stop" });
     assert.equal(out.pid, process.ppid);
   });
+});
+
+describe("targetOf", () => {
+  const cases = [
+    ["Edit", { file_path: "/w/src/build.ts" }, "build.ts"],
+    ["Write", { file_path: "/w/.env" }, ".env"],
+    ["NotebookEdit", { notebook_path: "/w/a.ipynb" }, "a.ipynb"],
+    ["Bash", { command: "npm run build -- --watch" }, "npm run"],
+    ["Bash", { command: "git commit -m 'x'" }, "git commit"],
+    ["Bash", { command: "ls" }, "ls"],
+    ["Bash", { command: "/usr/local/bin/node script.mjs" }, "node"],
+    ["Grep", { pattern: "sk-live-abc", path: "/w/src" }, "src"],
+    ["Glob", { pattern: "**/*.ts" }, null],
+    ["Task", { subagent_type: "reviewer", prompt: "secret plan" }, "reviewer"],
+    ["WebFetch", { url: "https://www.example.com/p?token=abc" }, "example.com"],
+    ["WebSearch", { query: "how do I rotate my aws key" }, null],
+    ["TodoWrite", { todos: [{ content: "ship it" }] }, null],
+  ];
+
+  for (const [tool, input, expected] of cases) {
+    it(`${tool} ${JSON.stringify(input).slice(0, 44)} → ${expected}`, () => {
+      assert.equal(targetOf(input, tool), expected);
+    });
+  }
+});
+
+/**
+ * The load-bearing half. Everything below is a real shape of secret that has
+ * appeared in somebody's command line or search, and none of it may reach a
+ * chat server. A failure here is a disclosure, not a cosmetic bug.
+ */
+describe("targetOf never leaks user content", () => {
+  const leaks = [
+    ["Bash", { command: "curl -H 'Authorization: Bearer sk-live-abc' https://api.x" }, "curl"],
+    // The binary survives; the assignment carrying the key does not.
+    ["Bash", { command: "ANTHROPIC_API_KEY=sk-ant-123 claude -p 'hi'" }, "claude"],
+    ["Bash", { command: "psql postgres://user:hunter2@db.internal/prod" }, "psql"],
+    ["Bash", { command: "ssh deploy@10.0.0.4 'cat /etc/shadow'" }, "ssh"],
+    ["Bash", { command: "echo $STRIPE_SECRET | base64" }, "echo"],
+    ["Grep", { pattern: "AKIA[0-9A-Z]{16}", path: "/w/infra" }, "infra"],
+    ["Grep", { pattern: "password" }, null],
+    ["Task", { prompt: "the customer list is attached" }, null],
+    ["WebFetch", { url: "https://api.example.com/v1/keys?token=sk-live-abc" }, "api.example.com"],
+  ];
+
+  for (const [tool, input, expected] of leaks) {
+    it(`${tool}: ${Object.values(input)[0].toString().slice(0, 46)}`, () => {
+      const target = targetOf(input, tool);
+      assert.equal(target, expected);
+      // Belt and braces: whatever came back, it isn't a fragment of the input.
+      const secrets = ["sk-live-abc", "sk-ant-123", "hunter2", "AKIA", "shadow", "STRIPE", "customer"];
+      for (const secret of secrets) {
+        assert.ok(!(target ?? "").includes(secret), `leaked ${secret}`);
+      }
+    });
+  }
 });
 
 describe("status line", () => {

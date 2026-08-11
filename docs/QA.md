@@ -70,7 +70,10 @@ Install with `/plugin marketplace add emd5953/cursor2discord` then
 | 4b.3b | Leave Cursor open across a Claude session restart | `up …` keeps climbing; the timer restarts with the new session |
 | 4b.3c | Watch the card through a long turn | line 1 holds the last tool between tool calls — it must **never** read a bare `Claude Code` |
 | 4b.3d | Let the turn finish and sit at the prompt | line 1 becomes `Claude Code — thinking` |
+| 4b.3e | Ask Claude to search the codebase | line 1 reads `searching <dir>` / `looking for files`, never the search pattern |
+| 4b.3f | Hover the small Claude badge during a session | `Cursor — <your open file>` |
 | 4b.4 | `~/.claude/settings.json` before vs after install | **unchanged** |
+| 4b.4a | `grep -r "<a secret from a command you ran>" ~/.claude/cursor2discord/sessions/` | no match |
 | 4b.5 | `/plugin uninstall cursor2discord` | falls back to the plain Claude Code state, no errors |
 | 4b.6 | `cursor2discord.claudeCode.liveActivity: false` | plain state even with the plugin installed |
 | 4b.7 | Reload the window twice | the setup doc appears at most once, not on every reload |

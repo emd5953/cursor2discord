@@ -36,7 +36,8 @@ const VERBS = {
   WebFetch: "reading the web",
   WebSearch: "searching the web",
   Grep: "searching",
-  Glob: "searching",
+  Glob: "looking for files",
+  TodoWrite: "updating the plan",
 };
 
 // Only when run as the hook itself. Importing it — which the tests do — must
@@ -122,7 +123,12 @@ function fromHook(payload) {
     if (!tool) return base;
     return {
       ...base,
-      activity: { tool, verb: VERBS[tool] ?? "working", target: targetOf(payload.tool_input), since: Date.now() },
+      activity: {
+        tool,
+        verb: VERBS[tool] ?? "working",
+        target: targetOf(payload.tool_input, tool),
+        since: Date.now(),
+      },
     };
   }
 
@@ -159,14 +165,64 @@ function fromStatusLine(payload) {
  * contains prompts, command lines and file contents, none of which belong
  * anywhere near a chat server.
  */
-function targetOf(toolInput) {
+function targetOf(toolInput, tool) {
   if (!toolInput || typeof toolInput !== "object") return null;
+
   const path = str(toolInput.file_path) ?? str(toolInput.notebook_path);
-  if (path) return path.split(/[\\/]/).pop() ?? null;
-  // For Bash, the binary alone: `npm` from `npm run build -- --watch`.
-  const command = str(toolInput.command);
-  if (command) return command.trim().split(/\s+/)[0]?.split(/[\\/]/).pop() ?? null;
+  if (path) return basename(path);
+
+  if (tool === "Bash") return bashTarget(str(toolInput.command));
+
+  // Grep and Glob: where it looked, never what it looked for. A search pattern
+  // is the user's own text and can trivially contain a secret being hunted.
+  if (tool === "Grep" || tool === "Glob") {
+    const scope = str(toolInput.path);
+    return scope ? basename(scope) : null;
+  }
+
+  // The subagent's type is one of a fixed set of names; its prompt is not.
+  if (tool === "Task") return str(toolInput.subagent_type);
+
+  // Host only — a URL path or query string carries tokens often enough.
+  if (tool === "WebFetch") {
+    const url = str(toolInput.url);
+    if (!url) return null;
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  }
+
+  // WebSearch queries and TodoWrite items are user content; the verb says
+  // enough on its own.
   return null;
+}
+
+function basename(value) {
+  return value.split(/[\\/]/).pop() || null;
+}
+
+/**
+ * `npm run`, `git commit` — the binary plus a subcommand, and only when that
+ * second token is a bare word. Anything carrying a flag, a path, an assignment
+ * or a quote is dropped, because that is where secrets live in a command line.
+ */
+function bashTarget(command) {
+  if (!command) return null;
+
+  const tokens = command.trim().split(/\s+/);
+  // `FOO=bar cmd` — the assignment is not the binary, and its value is very
+  // often the secret. Drop leading assignments the way util/cmdline.ts does.
+  while (tokens.length > 0 && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[0])) tokens.shift();
+
+  const binary = tokens[0] ? basename(tokens[0]) : null;
+  // A binary name is a bare word. Anything else is a shape we don't understand,
+  // and printing what we don't understand is how content escapes.
+  if (!binary || !/^[a-z0-9._-]+$/i.test(binary)) return null;
+
+  const second = tokens[1];
+  return second && /^[a-z][a-z0-9-]*$/i.test(second) ? `${binary} ${second}` : binary;
 }
 
 // --- sidecar io ------------------------------------------------------------
