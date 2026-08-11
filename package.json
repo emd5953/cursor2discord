@@ -1,8 +1,8 @@
 {
   "name": "cursor2discord",
   "displayName": "cursor2discord",
-  "description": "Discord Rich Presence for Cursor \u2014 shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
-  "version": "0.1.0",
+  "description": "Discord Rich Presence for Cursor — shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
+  "version": "0.1.1",
   "publisher": "emd5953",
   "license": "MIT",
   "engines": {
@@ -27,7 +27,7 @@
     "type": "git",
     "url": "https://github.com/emd5953/cursor2discord.git"
   },
-  "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host \u2014 omitting this breaks Remote-SSH and devcontainers entirely.",
+  "//extensionKind": "The Discord IPC socket lives on the local machine, so this must run on the UI host — omitting this breaks Remote-SSH and devcontainers entirely.",
   "extensionKind": [
     "ui"
   ],
@@ -117,12 +117,12 @@
         "cursor2discord.claudeCode.liveActivity": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Show what Claude Code is actually doing \u2014 current tool, file, session title, tokens \u2014 when the `cursor2discord` Claude Code plugin is installed. Without the plugin this has no effect and the presence falls back to a plain \"Claude Code\" state."
+          "markdownDescription": "Show what Claude Code is actually doing — current tool, file, session title, tokens — when the `cursor2discord` Claude Code plugin is installed. Without the plugin this has no effect and the presence falls back to a plain \"Claude Code\" state."
         },
         "cursor2discord.claudeCode.showTokens": {
           "type": "boolean",
           "default": true,
-          "description": "Include token counts and context usage in the icon hover text. Requires the token tier (/cursor2discord:enable-tokens)."
+          "description": "Include token counts and context usage on the card and in the icon hover text. Requires the token tier (/cursor2discord:enable-tokens)."
         },
         "cursor2discord.detectCursorAi": {
           "type": "boolean",
@@ -187,7 +187,7 @@
         },
         "cursor2discord.templates.editing.state": {
           "type": "string",
-          "default": "{workspace} \u2014 {branch}",
+          "default": "{workspace} — {branch}",
           "description": "Line 2 while editing."
         },
         "cursor2discord.templates.idle.details": {
@@ -202,13 +202,13 @@
         },
         "cursor2discord.templates.claudeCode.details": {
           "type": "string",
-          "default": "Claude Code \u2014 {claudeActivity}",
-          "markdownDescription": "Line 1 during a Claude Code session. Extra variables: `{claudeActivity}` (e.g. `editing client.ts`), `{tool}` `{verb}` `{target}` `{model}` `{sessionTitle}` `{tokensIn}` `{tokensOut}` `{contextPercent}`. All require the Claude Code plugin and collapse away without it."
+          "default": "Claude Code — {claudeActivity}",
+          "markdownDescription": "Line 1 during a Claude Code session. Extra variables: `{claudeActivity}` (e.g. `editing client.ts`), `{tool}` `{verb}` `{target}` `{model}` `{sessionTitle}` `{tokensIn}` `{tokensOut}` `{contextPercent}` `{tokenSummary}` `{claudeUptime}`. All require the Claude Code plugin and collapse away without it. `{cursorUptime}` always resolves."
         },
         "cursor2discord.templates.claudeCode.state": {
           "type": "string",
-          "default": "{sessionTitle}",
-          "description": "Line 2 during a Claude Code session. Falls back to the editing line when no session title is available."
+          "default": "{sessionTitle} · {tokenSummary} · up {cursorUptime}",
+          "markdownDescription": "Line 2 during a Claude Code session. `{tokenSummary}` renders `72.0K in / 199 out · 7% ctx` and needs the token tier; `{cursorUptime}` and `{claudeUptime}` render `3h 12m`. Unresolved parts collapse their separators. Falls back to the editing line when the whole line resolves to nothing."
         },
         "cursor2discord.templates.cursorAi.details": {
           "type": "string",
@@ -217,7 +217,7 @@
         },
         "cursor2discord.templates.cursorAi.state": {
           "type": "string",
-          "default": "{workspace} \u2014 {branch}",
+          "default": "{workspace} — {branch}",
           "description": "Line 2 during Cursor AI activity."
         },
         "cursor2discord.buttons": {

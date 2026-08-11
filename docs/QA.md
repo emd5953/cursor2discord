@@ -65,7 +65,9 @@ Install with `/plugin marketplace add emd5953/cursor2discord` then
 |---|---|---|
 | 4b.1 | Run a task that edits a file | line 1 becomes `Claude Code — editing <file>`; the file tracks the real edit |
 | 4b.2 | Line 2 | shows the session title |
-| 4b.3 | `/cursor2discord:enable-tokens`, then a task | token counts and context % appear in the icon hover |
+| 4b.3 | `/cursor2discord:enable-tokens`, then a task | line 2 reads `<title> · 72.0K in / 199 out · 7% ctx · up 3h 12m` — no hover needed |
+| 4b.3a | Same, without the token tier | line 2 is the bare title, no dangling `·` |
+| 4b.3b | Leave Cursor open across a Claude session restart | `up …` keeps climbing; the timer restarts with the new session |
 | 4b.4 | `~/.claude/settings.json` before vs after install | **unchanged** |
 | 4b.5 | `/plugin uninstall cursor2discord` | falls back to the plain Claude Code state, no errors |
 | 4b.6 | `cursor2discord.claudeCode.liveActivity: false` | plain state even with the plugin installed |

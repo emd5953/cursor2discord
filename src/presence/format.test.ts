@@ -105,6 +105,63 @@ describe("claude live variables", () => {
   });
 });
 
+describe("token summary and durations", () => {
+  const STATE = "{sessionTitle} · {tokenSummary} · up {cursorUptime}";
+
+  it("renders the shipped default line 2 in full", () => {
+    const s = snapshot({ claudeLive: live(), sessionStartedAt: now - 3 * 3_600_000 - 12 * 60_000 });
+    assert.equal(
+      format(STATE, s, config, now),
+      "add rate limiting · 15.5K in / 1.2K out · 8% ctx · up 3h 12m",
+    );
+  });
+
+  it("stays inside the 128-byte line budget", () => {
+    const s = snapshot({ claudeLive: live() });
+    assert.ok(Buffer.byteLength(format(STATE, s, config, now), "utf8") <= 128);
+  });
+
+  it("collapses to the title alone without the token tier", () => {
+    const s = snapshot({ claudeLive: live({ tokens: null }), sessionStartedAt: now });
+    assert.equal(format("{sessionTitle} · {tokenSummary}", s, config, now), "add rate limiting");
+  });
+
+  it("drops the summary when showTokens is off, leaving no dangling separator", () => {
+    const s = snapshot({ claudeLive: live() });
+    const off = { ...config, claudeCode: { ...config.claudeCode, showTokens: false } };
+    assert.equal(format("{sessionTitle} · {tokenSummary}", s, off, now), "add rate limiting");
+  });
+
+  it("compacts thousands and millions, but not hundreds", () => {
+    const s = snapshot({
+      claudeLive: live({ tokens: { input: 2_400_000, output: 999, usedPercentage: 94 } }),
+    });
+    assert.equal(format("{tokenSummary}", s, config, now), "2.4M in / 999 out · 94% ctx");
+  });
+
+  it("renders a sub-hour uptime without an hours part", () => {
+    const s = snapshot({ sessionStartedAt: now - 12 * 60_000 });
+    assert.equal(format("{cursorUptime}", s, config, now), "12m");
+  });
+
+  it("floors a fresh session to 0m rather than showing seconds", () => {
+    const s = snapshot({ sessionStartedAt: now - 5_000 });
+    assert.equal(format("{cursorUptime}", s, config, now), "0m");
+  });
+
+  it("tracks the Claude session separately from Cursor's uptime", () => {
+    const s = snapshot({
+      sessionStartedAt: now - 3 * 3_600_000,
+      claudeLive: live({ startedAt: now - 63 * 60_000 }),
+    });
+    assert.equal(format("{cursorUptime}/{claudeUptime}", s, config, now), "3h 0m/1h 3m");
+  });
+
+  it("has no claude uptime without a live session", () => {
+    assert.equal(format("{claudeUptime}", snapshot(), config, now), "");
+  });
+});
+
 describe("privacy", () => {
   it("hides a target matching ignoredFiles", () => {
     const s = snapshot({ claudeLive: live({ activity: { tool: "Read", verb: "reading", target: ".env" } }) });

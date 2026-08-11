@@ -14,6 +14,7 @@ const VARIABLE = /\{(\w+)\}/g;
 export function resolveVariables(
   snapshot: Snapshot,
   config: Config,
+  now: number = Date.now(),
 ): Readonly<Record<string, string | null>> {
   const { editor, workspace, git, claudeLive } = snapshot;
   const mode = config.privacy.mode;
@@ -46,6 +47,17 @@ export function resolveVariables(
     tokensIn: tokens ? String(tokens.input) : null,
     tokensOut: tokens ? String(tokens.output) : null,
     contextPercent: tokens ? String(tokens.usedPercentage) : null,
+    // Composed here for the same reason as `claudeActivity`: three variables
+    // separated by punctuation would each need their own collapse rule.
+    tokenSummary: tokens
+      ? `${compact(tokens.input)} in / ${compact(tokens.output)} out · ${tokens.usedPercentage}% ctx`
+      : null,
+    // Discord renders one counting timer, which the Claude session owns. Both
+    // durations are still wanted on the card, so they are also plain text.
+    // `sessionStartedAt` is extension activation, which is `onStartupFinished`
+    // — within a second or two of Cursor launching.
+    cursorUptime: duration(now - snapshot.sessionStartedAt),
+    claudeUptime: claudeLive ? duration(now - claudeLive.startedAt) : null,
     file: hideFiles ? null : (editor?.fileName ?? null),
     ext: hideFiles ? null : (extensionOf(editor?.fileName) ?? null),
     relPath: hideFiles || hideWorkspace ? null : (editor?.relPath ?? null),
@@ -88,8 +100,30 @@ function tokenize(template: string, values: Readonly<Record<string, string | nul
   return tokens;
 }
 
-export function format(template: string, snapshot: Snapshot, config: Config): string {
-  const tokens = tokenize(template, resolveVariables(snapshot, config));
+/**
+ * `72.0K`, `199`. Shared with the icon hover so one token count never renders
+ * two different ways on the same card.
+ */
+export function compact(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return String(value);
+}
+
+/** `3h 12m`, `12m`. Never seconds — the card refreshes at most every 15s. */
+function duration(ms: number): string {
+  const minutes = Math.max(0, Math.floor(ms / 60_000));
+  const hours = Math.floor(minutes / 60);
+  return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+}
+
+export function format(
+  template: string,
+  snapshot: Snapshot,
+  config: Config,
+  now: number = Date.now(),
+): string {
+  const tokens = tokenize(template, resolveVariables(snapshot, config, now));
   const kept = tokens.map((token) => (token.resolved ? token.text : ""));
 
   // A variable that resolved to nothing leaves its joining punctuation dangling.

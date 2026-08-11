@@ -83,8 +83,11 @@ export function readConfig(): Config {
         state: c.get<string>("templates.idle.state", "in {workspace}"),
       },
       claudeCode: {
-        details: c.get<string>("templates.claudeCode.details", "Running Claude Code"),
-        state: c.get<string>("templates.claudeCode.state", "{workspace} — {branch}"),
+        details: c.get<string>("templates.claudeCode.details", "Claude Code — {claudeActivity}"),
+        state: c.get<string>(
+          "templates.claudeCode.state",
+          "{sessionTitle} · {tokenSummary} · up {cursorUptime}",
+        ),
       },
       cursorAi: {
         details: c.get<string>("templates.cursorAi.details", "Vibing with Cursor AI"),
