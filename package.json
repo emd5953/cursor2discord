@@ -253,7 +253,7 @@
     "build": "tsup",
     "watch": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "test": "node --import tsx --test \"src/**/*.test.ts\" \"plugins/**/*.test.mjs\"",
     "package": "npm run build && vsce package --no-dependencies",
     "publish:ovsx": "npm run package && ovsx publish cursor2discord-$npm_package_version.vsix"
   },

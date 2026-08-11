@@ -40,7 +40,12 @@ interface Sidecar {
   readonly model: string | null;
   readonly startedAt: number;
   readonly updatedAt: number;
-  readonly activity: { tool: string; verb: string; target: string | null; since: number } | null;
+  readonly activity: {
+    tool: string | null;
+    verb: string;
+    target: string | null;
+    since: number;
+  } | null;
   readonly tokens: { input: number; output: number; usedPercentage: number } | null;
 }
 

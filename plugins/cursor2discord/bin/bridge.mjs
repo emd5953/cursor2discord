@@ -19,6 +19,8 @@
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { argv } from "node:process";
+import { pathToFileURL } from "node:url";
 
 const SIDECAR_VERSION = 1;
 const SESSIONS_DIR = join(homedir(), ".claude", "cursor2discord", "sessions");
@@ -37,7 +39,11 @@ const VERBS = {
   Glob: "searching",
 };
 
-main();
+// Only when run as the hook itself. Importing it — which the tests do — must
+// not read stdin or exit the process.
+if (argv[1] && import.meta.url === pathToFileURL(argv[1]).href) main();
+
+export { fromHook, fromStatusLine, targetOf, statusLineText };
 
 function main() {
   try {
@@ -96,9 +102,19 @@ function fromHook(payload) {
     return { ...base, startedAt: Date.now(), model: str(payload.model), activity: null };
   }
 
-  // Anything that ends a turn or a tool call means Claude is thinking again.
-  if (event === "PostToolUse" || event === "Stop" || event === "PostToolUseFailure") {
-    return { ...base, activity: null };
+  // A finished tool is not a finished turn. Another tool is usually seconds
+  // away, and blanking the activity here is what left the card reading a bare
+  // "Claude Code" for most of its life. Omitting the field holds the last tool;
+  // `merge` treats undefined as "nothing to say".
+  if (event === "PostToolUse" || event === "PostToolUseFailure") {
+    return base;
+  }
+
+  // A turn ending is different: nothing is running and none will start until
+  // the user replies. Say so, rather than holding a tool that finished minutes
+  // ago.
+  if (event === "Stop") {
+    return { ...base, activity: { tool: null, verb: "thinking", target: null, since: Date.now() } };
   }
 
   if (event === "PreToolUse") {

@@ -186,7 +186,7 @@ Each leaves the repo working and installable.
 | # | Scope | Exit criterion | Status |
 |---|---|---|---|
 | **R1** | `{tokenSummary}`, `{cursorUptime}`, `{claudeUptime}`, new `claudeCode.state` default | tokens **and** both durations readable without hovering | **done** (v0.1.1) |
-| **R2** | Plugin holds activity through `PostToolUse`, emits `thinking` on `Stop`; extension tolerates a null `tool` | card never collapses to bare `Claude Code` | |
+| **R2** | Plugin holds activity through `PostToolUse`, emits `thinking` on `Stop`; extension tolerates a null `tool` | card never collapses to bare `Claude Code` | **done** (plugin 0.1.1) |
 | **R3** | Wider hook matcher + per-tool `targetOf` | `Grep`, `Glob`, `Task`, `WebSearch` reach the card; negative table passes | |
 | **R4** | Badge hover carries the user's open file | overflow context reachable without displacing Claude | |
 

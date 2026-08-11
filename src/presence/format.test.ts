@@ -93,6 +93,18 @@ describe("claude live variables", () => {
     assert.equal(format("{claudeActivity}", s, config), "delegating");
   });
 
+  it("renders a running tool while one is running", () => {
+    const s = snapshot({ claudeLive: live() });
+    assert.equal(format("{claudeActivity}", s, config, now), "editing client.ts");
+  });
+
+  it("renders the between-turns state, where there is a verb but no tool", () => {
+    const s = snapshot({
+      claudeLive: live({ activity: { tool: null, verb: "thinking", target: null } }),
+    });
+    assert.equal(format("Claude Code — {claudeActivity}", s, config, now), "Claude Code — thinking");
+  });
+
   it("exposes tokens and model", () => {
     const s = snapshot({ claudeLive: live() });
     assert.equal(format("{model} {tokensIn}/{tokensOut} {contextPercent}%", s, config), "Opus 15500/1200 8%");

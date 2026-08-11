@@ -35,7 +35,8 @@ export interface ClaudeLiveState {
   readonly sessionTitle: string | null;
   readonly model: string | null;
   readonly activity: {
-    readonly tool: string;
+    /** Null between turns, when the verb is `thinking` and no tool is running. */
+    readonly tool: string | null;
     readonly verb: string;
     readonly target: string | null;
   } | null;
