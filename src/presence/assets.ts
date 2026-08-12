@@ -54,8 +54,29 @@ const ICONS: Readonly<Record<string, string>> = {
 
 /** Human-readable label shown on icon hover. */
 const NAMES: Readonly<Record<string, string>> = {
+  // Anything whose capitalisation isn't just "first letter up" needs to be here
+  // — `capitalise("typescript")` yields "Typescript", which looks like a typo.
+  typescript: "TypeScript",
+  javascript: "JavaScript",
   typescriptreact: "TypeScript React",
   javascriptreact: "JavaScript React",
+  php: "PHP",
+  html: "HTML",
+  css: "CSS",
+  scss: "SCSS",
+  json: "JSON",
+  yaml: "YAML",
+  toml: "TOML",
+  sql: "SQL",
+  xml: "XML",
+  latex: "LaTeX",
+  dockerfile: "Dockerfile",
+  makefile: "Makefile",
+  objectivec: "Objective-C",
+  fsharp: "F#",
+  restructuredtext: "reStructuredText",
+  vue: "Vue",
+  git: "Git",
   cpp: "C++",
   csharp: "C#",
   shellscript: "Shell",

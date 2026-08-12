@@ -1,6 +1,7 @@
 # src/ is kept so the bundled sourcemap resolves, but nothing test- or
 # build-related belongs in a shipped extension.
 **/*.test.ts
+src/testing/**
 # The Claude Code plugin is installed from the git repo via /plugin, never
 # from the .vsix — shipping a copy here would just go stale.
 plugins/**

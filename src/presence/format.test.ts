@@ -1,66 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import type { Config } from "../config.js";
-import type { ClaudeLiveState, Snapshot } from "../state.js";
 import { clampField, format } from "./format.js";
-
-const config: Config = {
-  enabled: true,
-  applicationId: "1",
-  showElapsedTime: true,
-  elapsedTimeResetsOnFileChange: false,
-  idleTimeoutSeconds: 300,
-  idleBehavior: "showIdle",
-  detectClaudeCode: true,
-  claudeCodeCommands: ["claude"],
-  claudeCode: { liveActivity: true, showTokens: true },
-  detectCursorAi: true,
-  priority: ["claudeCode", "cursorAi", "editing", "idle"],
-  privacy: {
-    mode: "full",
-    ignoredWorkspaces: [],
-    ignoredFiles: ["**/.env", "**/*.pem"],
-  },
-  templates: {
-    editing: { details: "Editing {file}", state: "{workspace} — {branch}" },
-    idle: { details: "Idle", state: "in {workspace}" },
-    claudeCode: { details: "Claude Code — {claudeActivity}", state: "{sessionTitle}" },
-    cursorAi: { details: "Vibing with Cursor AI", state: "{workspace} — {branch}" },
-  },
-  buttons: [],
-  statusBar: { enabled: true },
-};
-
-const now = Date.now();
-
-function snapshot(overrides: Partial<Snapshot> = {}): Snapshot {
-  return {
-    editor: null,
-    workspace: { name: "my-project", folderPath: "/w" },
-    git: { branch: "main", repoName: "my-project", remoteUrl: null },
-    claudeCode: { sessions: 0, since: null },
-    claudeLive: null,
-    cursorAi: { active: false, since: null, confidence: 0 },
-    focused: true,
-    unfocusedSince: null,
-    lastInputAt: now,
-    sessionStartedAt: now,
-    fileOpenedAt: now,
-    ...overrides,
-  };
-}
-
-function live(overrides: Partial<ClaudeLiveState> = {}): ClaudeLiveState {
-  return {
-    sessionId: "s1",
-    startedAt: now,
-    sessionTitle: "add rate limiting",
-    model: "Opus",
-    activity: { tool: "Edit", verb: "editing", target: "client.ts" },
-    tokens: { input: 15500, output: 1200, usedPercentage: 8 },
-    ...overrides,
-  };
-}
+import { config, live, now, snapshot } from "../testing/fixtures.js";
 
 describe("separator collapse", () => {
   it("drops a separator between two values when one is missing", () => {
