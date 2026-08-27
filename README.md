@@ -138,7 +138,9 @@ previous tag renders a card with no icons at all. It needs one repository secret
 
 ```bash
 npm version patch --no-git-tag-version   # and the other two, to match
-git commit -am "…" && git tag v0.1.4 && git push --follow-tags
+git commit -am "…"
+git tag -a v0.1.4 -m v0.1.4              # -a matters: --follow-tags skips lightweight tags
+git push --follow-tags
 ```
 
 ## License
