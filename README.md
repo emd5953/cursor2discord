@@ -2,12 +2,9 @@
 
 Discord Rich Presence for [Cursor](https://cursor.com) that knows what your agents are doing.
 
-```
-Playing Cursor
-Claude Code — editing client.ts
-add rate limiting to the RPC client · 72.0K in / 199 out · 7% ctx · up 3h 12m
-2h 14m
-```
+![The Discord card cycling through editing, a Claude Code session, and idle](https://raw.githubusercontent.com/emd5953/cursor2discord/main/docs/demo.gif)
+
+<sub>Drawn from the strings the golden payload tests assert, not a screen capture.</sub>
 
 Other presence extensions work in Cursor, but report it as "VS Code" and are blind to the
 two things a Cursor user actually spends the day doing: driving Cursor's AI, and running
@@ -41,6 +38,11 @@ Then reload the window. That's it — no Discord app to register, no configurati
 | `idle` | `Idle` | no input for 5 minutes |
 
 Which one wins is configurable via `cursor2discord.priority`.
+
+The large image is always the Cursor mark, so the card reads as Cursor at a glance. The
+badge under it says what is driving: Claude Code, Cursor AI, or — when neither is — the
+language you have open. Hovering the large image during a session shows the model and
+token counts.
 
 ## Live Claude Code detail
 
@@ -128,7 +130,9 @@ Design decisions are recorded in [SPEC.md](SPEC.md) and
 [docs/specs/](docs/specs/), including the alternatives that were rejected and why.
 
 Icons are generated, not hand-drawn: `python3 scripts/make-assets.py` (needs Pillow,
-network access, and Chrome as the SVG renderer).
+network access, and Chrome as the SVG renderer). The card above is drawn too, by
+`python3 scripts/make-demo.py`, from the strings the golden payload tests assert — it
+cannot drift from what the extension sends without a test failing first.
 
 Releasing is one tag. `.github/workflows/release.yml` builds, tests, publishes to Open VSX
 and cuts the GitHub release on any `v*` tag, refusing to publish unless `package.json`,
