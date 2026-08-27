@@ -293,8 +293,11 @@ Discord's model wants images uploaded to the application (300 max), which forces
 with a custom `applicationId` through a manual upload slog. Instead, `large_image` accepts
 a raw `https://` URL that Discord proxies. Ship icons as pinned jsDelivr URLs into this
 repo's `assets/` — zero upload for custom app IDs, and icon updates ship without a Discord
-dashboard round-trip. `assets.source: "external" | "uploaded"` as an escape hatch for
-locked-down networks. Unknown language ⇒ generic `file` icon, never a broken image.
+dashboard round-trip. Unknown language ⇒ generic `file` icon, never a broken image.
+
+An `assets.source: "external" | "uploaded"` setting was specified here as an escape hatch
+for networks that cannot reach jsDelivr. It was never built, and nothing has asked for it —
+recorded as unbuilt rather than left reading like a shipped feature.
 
 The large image is always the Cursor mark. It was the language icon up to 0.1.2, which made
 the headline picture of the card a 512px "MD" — the card read as a markdown document rather

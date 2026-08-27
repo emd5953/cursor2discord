@@ -10,7 +10,7 @@ import type { Snapshot } from "../state.js";
  * `terminal.ts`'s boolean works for everyone else, and during the gap between
  * `claude` starting and its first hook firing.
  */
-export function isClaudeActive(snapshot: Snapshot): boolean {
+function isClaudeActive(snapshot: Snapshot): boolean {
   return snapshot.claudeLive !== null || snapshot.claudeCode.sessions > 0;
 }
 
@@ -42,7 +42,7 @@ export function select(snapshot: Snapshot, config: Config): ActivityKind {
  * reading docs in a browser marks you idle — hence the separate, more forgiving
  * unfocused budget. Either timer alone is disabled with 0.
  */
-export function isIdle(snapshot: Snapshot, config: Config): boolean {
+function isIdle(snapshot: Snapshot, config: Config): boolean {
   // An agent working while you read Twitter is exactly the state worth showing.
   if (config.detectClaudeCode && isClaudeActive(snapshot)) return false;
 
