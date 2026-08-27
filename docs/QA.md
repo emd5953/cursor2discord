@@ -146,8 +146,37 @@ Exit criterion: **≤1 false positive per hour of normal editing.** Log each one
 
 ---
 
+## What can be checked without Cursor
+
+Most of this checklist needs a running Cursor and a running Discord. A useful subset does
+not, and it is worth running first — it is fast, and it covers the rows where a regression
+would be silent:
+
+| Rows | How |
+|---|---|
+| 4.2, 4.3 | `npm test` — `util/cmdline` is the command table verbatim |
+| 4b.3c, 4b.3d, 4b.3e | pipe hook payloads into `bridge.mjs hook`, read the sidecar |
+| 4b.4a | pipe a payload carrying a secret, then grep the sidecar for it |
+| 4b.4 | `python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.claude/settings.json'))).get('statusLine','absent'))"` |
+| 7.7 | `npm test` — `presence/format` clamps on byte length |
+| 10.1, 10.2 | `curl -sLo /dev/null -w '%{http_code}'` every URL `presence/assets.ts` can emit |
+
 ## Sign-off
 
 | Version | Date | Runner | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 0.1.1 | 2026-08-27 | Claude Opus 5 | partial | Mechanical subset above only — §1, §2, §3, §5, §6, §8, §9 need a GUI and were not run. Two findings, both filed below. |
+
+### Findings, 0.1.1
+
+- **The token tier runs a frozen copy of `bridge.mjs`.** `enable-tokens` copies the bridge to
+  `~/.claude/cursor2discord/bridge.mjs` because `${CLAUDE_PLUGIN_ROOT}` is undefined in a
+  status line context. Nothing ever refreshes that copy: on the machine this was run on it
+  was still the pre-R2 build from 2026-08-04, three weeks and two milestones behind the
+  plugin. Today the damage is contained — statusline mode only calls `fromStatusLine`, which
+  has not changed — but the next change to that half, or to `SIDECAR_VERSION`, reaches
+  nobody who enabled tokens. Add §4b.8: after updating the plugin, `diff` the copy against
+  the plugin's bin.
+- **`ASSET_REF` is `"main"`,** while the comment directly above it says the ref is pinned so
+  that a bad icon commit cannot change what installed copies render. The comment describes
+  the intent; the value does not implement it.
