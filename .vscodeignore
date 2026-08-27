@@ -15,6 +15,11 @@ tsup.config.ts
 # Local agent config, not part of the extension.
 .claude/**
 .gitignore
+# Publishing credentials live here. vsce refuses to package a .vsix containing
+# one at all, so this is what makes `publish:ovsx` work from a shell that reads
+# an .env rather than exporting the token by hand.
+.env
+.env.*
 node_modules/**
 scratchpad/**
 *.vsix
