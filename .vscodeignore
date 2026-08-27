@@ -12,8 +12,9 @@ assets/**
 scripts/**
 tsconfig.json
 tsup.config.ts
-# Local agent config, not part of the extension.
+# Local agent config and CI, not part of the extension.
 .claude/**
+.github/**
 .gitignore
 # Publishing credentials live here. vsce refuses to package a .vsix containing
 # one at all, so this is what makes `publish:ovsx` work from a shell that reads
