@@ -19,7 +19,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # 22, not 20: `npm test` leans on node --test expanding the glob
+          # itself, which older releases do not do. On 20 the whole suite is
+          # skipped with "Could not find src/**/*.test.ts" and the job fails.
+          node-version: "22"
           cache: npm
 
       - run: npm ci
