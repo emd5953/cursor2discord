@@ -273,8 +273,9 @@ presence until a TTL expires.
 
 ### Payload construction
 
-`type: 0` (Playing), `details`/`state`, `timestamps.start`, `assets` (language icon +
-Cursor/Claude badge), up to 2 buttons.
+`type: 0` (Playing), `details`/`state`, `timestamps.start`, `assets` (Cursor mark as the
+large image + a badge: Claude/Cursor AI during an AI session, otherwise the language icon),
+up to 2 buttons.
 
 Discord truncates `details`/`state` at 128 **bytes** and rejects 1-char strings. `build.ts`
 clamps by byte length on a grapheme boundary and pads 1-char results to 2. Empty ⇒ omit the
@@ -294,6 +295,15 @@ a raw `https://` URL that Discord proxies. Ship icons as pinned jsDelivr URLs in
 repo's `assets/` — zero upload for custom app IDs, and icon updates ship without a Discord
 dashboard round-trip. `assets.source: "external" | "uploaded"` as an escape hatch for
 locked-down networks. Unknown language ⇒ generic `file` icon, never a broken image.
+
+The large image is always the Cursor mark. It was the language icon up to 0.1.2, which made
+the headline picture of the card a 512px "MD" — the card read as a markdown document rather
+than as Cursor. The language icon it displaced takes the badge slot whenever no AI session
+is claiming it, and is dropped entirely when `privacy.mode` is `minimal` rather than
+repeating the large image. The marks themselves are the real brand logos — devicon for
+languages, each vendor's own app icon for Cursor and Claude — on a light plate, since a
+brand mark drawn for a light ground goes wrong when inverted onto a dark one. Regenerate
+with `scripts/make-assets.py`; do not hand-edit `assets/`.
 
 ### Privacy
 

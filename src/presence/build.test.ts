@@ -31,7 +31,7 @@ describe("claude code payload", () => {
       details: "Claude Code — editing client.ts",
       state: "add rate limiting · 15.5K in / 1.2K out · 8% ctx · up 3h 12m",
       startTimestamp: now,
-      largeImageKey: `${ICON}/typescript.png`,
+      largeImageKey: `${ICON}/cursor.png`,
       largeImageText: "Opus · 15.5K in / 1.2K out · 8% ctx",
       smallImageKey: `${ICON}/claude.png`,
       smallImageText: "Cursor — build.ts",
@@ -90,7 +90,7 @@ describe("payload under privacy modes", () => {
   it("minimal drops the title, leaving tokens — which name nothing", () => {
     const activity = build(s, { ...config, privacy: { ...config.privacy, mode: "minimal" } })!;
     assert.equal(activity.state, "15.5K in / 1.2K out · 8% ctx · up 0m");
-    assert.equal(activity.largeImageKey, `${ICON}/file.png`);
+    assert.equal(activity.largeImageKey, `${ICON}/cursor.png`);
   });
 
   it("drops a Claude target matching ignoredFiles", () => {
@@ -115,16 +115,24 @@ describe("other states", () => {
       details: "Editing build.ts",
       state: "my-project — main",
       startTimestamp: now,
-      largeImageKey: `${ICON}/typescript.png`,
-      largeImageText: "TypeScript",
-      smallImageKey: `${ICON}/cursor.png`,
-      smallImageText: "Cursor",
+      largeImageKey: `${ICON}/cursor.png`,
+      largeImageText: "Cursor",
+      smallImageKey: `${ICON}/typescript.png`,
+      smallImageText: "TypeScript",
     });
   });
 
   it("carries no claude hover text outside a claude session", () => {
     const s = snapshot({ editor: editor(), cursorAi: { active: true, since: now, confidence: 1 } });
-    assert.equal(build(s, config)!.largeImageText, "TypeScript");
+    assert.equal(build(s, config)!.largeImageText, "Cursor");
+  });
+
+  it("drops the badge when there is no AI and no language to put in it", () => {
+    // `minimal` withholds the language, and the large image is already Cursor —
+    // a second Cursor mark in the badge would say nothing.
+    const s = snapshot({ editor: editor() });
+    const activity = build(s, { ...config, privacy: { ...config.privacy, mode: "minimal" } })!;
+    assert.equal("smallImageKey" in activity, false);
   });
 
   it("clears the presence when disabled", () => {

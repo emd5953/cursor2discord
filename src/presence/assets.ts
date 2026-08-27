@@ -9,7 +9,7 @@
  * It was `main` up to 0.1.1, which made the comment above a description of the
  * intent rather than of the code. Bump this in the same commit as the version.
  */
-const ASSET_REF = "v0.1.2";
+const ASSET_REF = "v0.1.3";
 const ASSET_BASE = `https://cdn.jsdelivr.net/gh/emd5953/cursor2discord@${ASSET_REF}/assets`;
 
 export interface Asset {
@@ -97,6 +97,20 @@ export function assetForLanguage(languageId: string | null): Asset {
   return { key: url(icon), text };
 }
 
+/**
+ * The large image is the app, not the file: a card whose headline picture is a
+ * 512px "MD" reads as a markdown document, not as Cursor. The language icon it
+ * displaced moves to the badge slot — see build.ts.
+ */
+export function appAsset(): Asset {
+  return { key: url("cursor"), text: "Cursor" };
+}
+
+/**
+ * The badge says who is driving. Outside an AI session there is nobody to name,
+ * so the slot goes back to the language icon rather than repeating the large
+ * image's own Cursor mark.
+ */
 export function badgeForKind(kind: "claudeCode" | "cursorAi" | "editing" | "idle"): Asset | null {
   switch (kind) {
     case "claudeCode":
@@ -104,7 +118,6 @@ export function badgeForKind(kind: "claudeCode" | "cursorAi" | "editing" | "idle
     case "cursorAi":
       return { key: url("cursor-ai"), text: "Cursor AI" };
     case "editing":
-      return { key: url("cursor"), text: "Cursor" };
     case "idle":
       return null;
   }

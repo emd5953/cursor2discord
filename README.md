@@ -127,8 +127,13 @@ npm run package   # → cursor2discord-<version>.vsix
 Design decisions are recorded in [SPEC.md](SPEC.md) and
 [docs/specs/](docs/specs/), including the alternatives that were rejected and why.
 
-Icons are generated, not hand-drawn: `python3 scripts/make-assets.py`.
+Icons are generated, not hand-drawn: `python3 scripts/make-assets.py` (needs Pillow,
+network access, and Chrome as the SVG renderer).
 
 ## License
 
 MIT
+
+Language icons are [devicon](https://github.com/devicons/devicon) (MIT). The Cursor and
+Claude marks are their owners' trademarks, used to identify the products this extension
+reports on.
