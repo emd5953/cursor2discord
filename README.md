@@ -130,6 +130,17 @@ Design decisions are recorded in [SPEC.md](SPEC.md) and
 Icons are generated, not hand-drawn: `python3 scripts/make-assets.py` (needs Pillow,
 network access, and Chrome as the SVG renderer).
 
+Releasing is one tag. `.github/workflows/release.yml` builds, tests, publishes to Open VSX
+and cuts the GitHub release on any `v*` tag, refusing to publish unless `package.json`,
+the plugin's `plugin.json` and `ASSET_REF` all agree with it — a build pinned to the
+previous tag renders a card with no icons at all. It needs one repository secret,
+`OVSX_PAT`.
+
+```bash
+npm version patch --no-git-tag-version   # and the other two, to match
+git commit -am "…" && git tag v0.1.4 && git push --follow-tags
+```
+
 ## License
 
 MIT

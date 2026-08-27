@@ -1,0 +1,72 @@
+name: release
+
+# Pushing a v* tag is the whole release. Everything below used to be five
+# commands run by hand, in an order that mattered: the icons resolve from a
+# jsDelivr URL pinned to the tag, so publishing a build whose ASSET_REF points
+# at the previous release ships a card with no images at all.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      # Fail before anything is published rather than after. A tag that
+      # disagrees with any of these three is a release that looks fine and
+      # renders broken.
+      - name: Versions agree with the tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          package="v$(node -p "require('./package.json').version")"
+          plugin="v$(node -p "require('./plugins/cursor2discord/.claude-plugin/plugin.json').version")"
+          asset=$(node -p "require('fs').readFileSync('src/presence/assets.ts','utf8').match(/ASSET_REF = \"([^\"]+)\"/)[1]")
+
+          fail=0
+          for pair in "package.json:$package" "plugin.json:$plugin" "ASSET_REF:$asset"; do
+            name="${pair%%:*}"
+            value="${pair#*:}"
+            if [ "$value" != "$tag" ]; then
+              echo "::error::$name is $value, tag is $tag"
+              fail=1
+            fi
+          done
+          [ "$fail" = 0 ]
+
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Package
+        run: npm run package
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx ovsx publish "cursor2discord-${GITHUB_REF_NAME#v}.vsix"
+
+      # Last, so a failed publish doesn't leave a release announcing a version
+      # nobody can install. Re-running the job uploads the .vsix to the release
+      # the first attempt already made.
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          asset="cursor2discord-${GITHUB_REF_NAME#v}.vsix"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$asset" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$asset" \
+              --title "$GITHUB_REF_NAME" --generate-notes
+          fi
