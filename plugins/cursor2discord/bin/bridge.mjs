@@ -20,10 +20,18 @@ import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { argv } from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SIDECAR_VERSION = 1;
-const SESSIONS_DIR = join(homedir(), ".claude", "cursor2discord", "sessions");
+const HOME_DIR = join(homedir(), ".claude", "cursor2discord");
+const SESSIONS_DIR = join(HOME_DIR, "sessions");
+/**
+ * Where `/cursor2discord:enable-tokens` puts its copy of this file. The status
+ * line needs a stable path — `${CLAUDE_PLUGIN_ROOT}` is undefined in that
+ * context, and the plugin's own cache directory is versioned — so the copy has
+ * to exist. `refreshTokenTierCopy` is what keeps it from becoming a fork.
+ */
+const TOKEN_TIER_COPY = join(HOME_DIR, "bridge.mjs");
 
 /** Tool name → present-tense verb shown on the Discord card. */
 const VERBS = {
@@ -44,7 +52,7 @@ const VERBS = {
 // not read stdin or exit the process.
 if (argv[1] && import.meta.url === pathToFileURL(argv[1]).href) main();
 
-export { fromHook, fromStatusLine, targetOf, statusLineText };
+export { fromHook, fromStatusLine, targetOf, statusLineText, shouldRefreshCopy };
 
 function main() {
   try {
@@ -54,6 +62,10 @@ function main() {
 
     const sessionId = payload.session_id;
     if (typeof sessionId !== "string" || sessionId.length === 0) return finish(mode, null);
+
+    // A new session is the one moment we know we are running from the plugin
+    // and nothing is waiting on us.
+    if (payload.hook_event_name === "SessionStart") refreshTokenTierCopy();
 
     if (payload.hook_event_name === "SessionEnd") {
       remove(sessionId);
@@ -223,6 +235,44 @@ function bashTarget(command) {
 
   const second = tokens[1];
   return second && /^[a-z][a-z0-9-]*$/i.test(second) ? `${binary} ${second}` : binary;
+}
+
+// --- token tier copy -------------------------------------------------------
+
+/**
+ * Keep the status line's copy of this file in step with the plugin.
+ *
+ * The copy is a snapshot taken at `/cursor2discord:enable-tokens` time, and
+ * before this it was never refreshed — a plugin update moved the hooks forward
+ * and left the token tier running whatever shipped the day the user enabled it.
+ * That divergence is silent by construction: the copy still exits 0 and still
+ * prints a status line, so nothing looks broken until the sidecar schema moves
+ * and the extension quietly stops seeing tokens.
+ *
+ * Only ever *refreshes* — if the copy is absent the user has not enabled the
+ * token tier, and installing a file they did not ask for is not this hook's
+ * business.
+ */
+function refreshTokenTierCopy() {
+  try {
+    const self = fileURLToPath(import.meta.url);
+    const current = readFileSync(TOKEN_TIER_COPY, "utf8");
+    const latest = readFileSync(self, "utf8");
+    if (!shouldRefreshCopy(self, TOKEN_TIER_COPY, current, latest)) return;
+
+    // Temp + rename: the status line may fire from this exact path mid-write.
+    const temp = `${TOKEN_TIER_COPY}.${process.pid}.tmp`;
+    writeFileSync(temp, latest, "utf8");
+    renameSync(temp, TOKEN_TIER_COPY);
+  } catch {
+    // The copy does not exist, or is not ours to write. Silent by design.
+  }
+}
+
+/** Pure half, so the "don't copy a file onto itself" case is testable. */
+function shouldRefreshCopy(selfPath, copyPath, currentText, latestText) {
+  if (selfPath === copyPath) return false;
+  return currentText !== latestText;
 }
 
 // --- sidecar io ------------------------------------------------------------

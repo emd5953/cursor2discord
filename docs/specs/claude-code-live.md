@@ -156,6 +156,15 @@ has. The user sees and approves the settings edit; `/statusline delete` reverses
 
 Nothing in this project writes `~/.claude/settings.json`.
 
+The status line runs a *copy* of `bridge.mjs` at `~/.claude/cursor2discord/bridge.mjs`,
+because `${CLAUDE_PLUGIN_ROOT}` is undefined in that context and the plugin's own cache
+directory is versioned, so neither is a stable path to write into a settings file. A copy
+taken once and never refreshed is a fork, and a silent one: it goes on exiting 0 and
+printing a status line long after the schema it writes has moved. So `SessionStart`
+refreshes the copy whenever it differs from the plugin's own bin — it only ever *updates* a
+copy that exists, since an absent one means the user never enabled the token tier and
+installing a file they did not ask for is not a hook's business.
+
 ### Extension side
 
 | File | Owns |

@@ -38,7 +38,9 @@ it that passes the same stdin, and print its output instead of `$BRIDGE_OUTPUT` 
 lines if they want both.
 
 4. Copy the plugin's bridge to a stable path, because `${CLAUDE_PLUGIN_ROOT}` is not defined
-   in a status line context:
+   in a status line context. The copy keeps itself up to date after this — the plugin's
+   `SessionStart` hook refreshes it whenever it has fallen behind — so this copy is only
+   ever made once:
 
 ```bash
 mkdir -p ~/.claude/cursor2discord

@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { assetForLanguage } from "./assets.js";
 import { build } from "./build.js";
 import { config, editor, live, now, snapshot } from "../testing/fixtures.js";
 
@@ -12,7 +13,10 @@ import { config, editor, live, now, snapshot } from "../testing/fixtures.js";
  * gained a field nobody meant to send should fail here.
  */
 
-const ICON = "https://cdn.jsdelivr.net/gh/emd5953/cursor2discord@main/assets";
+// Derived, not spelled out: the pinned ref moves every release, and a golden
+// test that hardcodes it fails on the version bump rather than on a real change.
+// What matters here is which key each payload carries, not the CDN path.
+const ICON = assetForLanguage("plaintext").key.replace(/\/file\.png$/, "");
 
 describe("claude code payload", () => {
   const base = snapshot({

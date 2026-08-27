@@ -3,10 +3,13 @@
  * and proxies it, so nothing is ever uploaded to the application — that is what
  * lets a custom `applicationId` work with zero setup. See SPEC.md §Assets.
  *
- * The ref is pinned rather than floating on `main` so a bad icon commit can't
- * change what every installed copy renders.
+ * The ref is a release tag rather than `main` so a bad icon commit can't change
+ * what every installed copy renders — a floating ref means every user's card
+ * follows the tip of the branch, which is the one thing pinning exists to stop.
+ * It was `main` up to 0.1.1, which made the comment above a description of the
+ * intent rather than of the code. Bump this in the same commit as the version.
  */
-const ASSET_REF = "main";
+const ASSET_REF = "v0.1.2";
 const ASSET_BASE = `https://cdn.jsdelivr.net/gh/emd5953/cursor2discord@${ASSET_REF}/assets`;
 
 export interface Asset {

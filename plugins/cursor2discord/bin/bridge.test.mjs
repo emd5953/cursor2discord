@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { fromHook, statusLineText, targetOf } from "./bridge.mjs";
+import { fromHook, shouldRefreshCopy, statusLineText, targetOf } from "./bridge.mjs";
 
 /**
  * The bridge's contract with the extension is the `activity` field, and the
@@ -118,5 +118,26 @@ describe("status line", () => {
       tokens: { input: 72015, output: 199, usedPercentage: 7 },
     });
     assert.equal(text, "Opus 5  ·  thinking  ·  72.2K tok · 7% ctx");
+  });
+});
+
+/**
+ * The status line runs a *copy* of this file, because `${CLAUDE_PLUGIN_ROOT}`
+ * is undefined in that context. A copy that never refreshes is a fork, and a
+ * silent one — it keeps exiting 0 long after the schema has moved past it.
+ */
+describe("token tier copy", () => {
+  it("refreshes a copy the plugin has moved past", () => {
+    assert.equal(shouldRefreshCopy("/plugin/bridge.mjs", "/home/bridge.mjs", "old", "new"), true);
+  });
+
+  it("leaves an up-to-date copy alone", () => {
+    assert.equal(shouldRefreshCopy("/plugin/bridge.mjs", "/home/bridge.mjs", "same", "same"), false);
+  });
+
+  it("never writes a file onto itself", () => {
+    // The copy runs in statusline mode from this same path; without the guard
+    // it would rewrite itself while Claude Code is reading its output.
+    assert.equal(shouldRefreshCopy("/home/bridge.mjs", "/home/bridge.mjs", "a", "b"), false);
   });
 });

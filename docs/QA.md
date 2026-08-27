@@ -77,6 +77,7 @@ Install with `/plugin marketplace add emd5953/cursor2discord` then
 | 4b.5 | `/plugin uninstall cursor2discord` | falls back to the plain Claude Code state, no errors |
 | 4b.6 | `cursor2discord.claudeCode.liveActivity: false` | plain state even with the plugin installed |
 | 4b.7 | Reload the window twice | the setup doc appears at most once, not on every reload |
+| 4b.8 | With the token tier enabled, update the plugin, start a session, then `diff ~/.claude/cursor2discord/bridge.mjs "$(dirname "$(find ~/.claude/plugins/cache -name bridge.mjs | head -1)")/bridge.mjs"` | identical — the status line's copy tracks the plugin instead of freezing at whatever shipped the day tokens were enabled |
 
 ## 5. Cursor AI heuristic
 
@@ -167,6 +168,8 @@ would be silent:
 |---|---|---|---|---|
 | 0.1.1 | 2026-08-27 | Claude Opus 5 | partial | Mechanical subset above only — §1, §2, §3, §5, §6, §8, §9 need a GUI and were not run. Two findings, both filed below. |
 
+| 0.1.2 | 2026-08-27 | Claude Opus 5 | partial | Same mechanical subset. Both 0.1.1 findings fixed and re-checked: a stale copy refreshes on `SessionStart`, an absent one is not created, a read-only one still exits 0. |
+
 ### Findings, 0.1.1
 
 - **The token tier runs a frozen copy of `bridge.mjs`.** `enable-tokens` copies the bridge to
@@ -175,8 +178,9 @@ would be silent:
   was still the pre-R2 build from 2026-08-04, three weeks and two milestones behind the
   plugin. Today the damage is contained — statusline mode only calls `fromStatusLine`, which
   has not changed — but the next change to that half, or to `SIDECAR_VERSION`, reaches
-  nobody who enabled tokens. Add §4b.8: after updating the plugin, `diff` the copy against
-  the plugin's bin.
+  nobody who enabled tokens. **Fixed in 0.1.2** — `SessionStart` refreshes the copy when it
+  differs from the plugin's own bin. See §4b.8.
 - **`ASSET_REF` is `"main"`,** while the comment directly above it says the ref is pinned so
   that a bad icon commit cannot change what installed copies render. The comment describes
-  the intent; the value does not implement it.
+  the intent; the value does not implement it. **Fixed in 0.1.2** — pinned to the release
+  tag, which now has to move with the version.
