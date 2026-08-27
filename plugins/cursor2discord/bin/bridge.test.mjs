@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { fromHook, shouldRefreshCopy, statusLineText, targetOf } from "./bridge.mjs";
+import { fromHook, fromStatusLine, shouldRefreshCopy, statusLineText, targetOf } from "./bridge.mjs";
 
 /**
  * The bridge's contract with the extension is the `activity` field, and the
@@ -51,6 +51,14 @@ describe("activity lifecycle", () => {
   it("carries the parent pid, which is how the extension reaps dead sessions", () => {
     const out = fromHook({ ...base, hook_event_name: "Stop" });
     assert.equal(out.pid, process.ppid);
+  });
+});
+
+describe("fromStatusLine", () => {
+  it("never writes a pid — its own parent is a shell that is about to exit", () => {
+    // Stamping it here reaped the session between turns: hooks kept the real
+    // pid while a tool ran, and the next status line replaced it with a corpse.
+    assert.equal("pid" in fromStatusLine({ session_name: "s", workspace: { current_dir: "/w" } }), false);
   });
 });
 

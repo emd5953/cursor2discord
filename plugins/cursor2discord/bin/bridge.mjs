@@ -154,10 +154,15 @@ function fromStatusLine(payload) {
   const input = num(context.total_input_tokens);
   const output = num(context.total_output_tokens);
 
+  // No `pid` here, deliberately. The status line runs from a wrapper shell that
+  // exits the moment it has printed, so `process.ppid` is that shell — dead
+  // seconds later. Writing it would stamp the sidecar with a corpse on every
+  // render, and the extension reaps sessions whose pid is gone: the card would
+  // hold while a tool ran (hooks stamp the real pid) and drop to Idle the
+  // moment the turn ended. `merge` leaves the field alone when it is absent.
   return {
     cwd: str(payload.workspace?.current_dir) ?? str(payload.cwd),
     updatedAt: Date.now(),
-    pid: typeof process.ppid === "number" ? process.ppid : null,
     sessionTitle: str(payload.session_name),
     model: str(payload.model?.display_name),
     durationMs: num(cost.total_duration_ms),
