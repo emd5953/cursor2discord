@@ -12,6 +12,9 @@ assets/**
 scripts/**
 tsconfig.json
 tsup.config.ts
+# Local agent config, not part of the extension.
+.claude/**
+.gitignore
 node_modules/**
 scratchpad/**
 *.vsix
