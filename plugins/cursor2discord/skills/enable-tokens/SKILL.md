@@ -57,7 +57,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/bin/bridge.mjs" ~/.claude/cursor2discord/bridge.mjs
 ```
 
 6. Tell the user:
-   - tokens appear on the Discord card's icon hover text, not the visible lines
+   - tokens and context usage appear on the Discord card's second line, with the session
+     title — no hover needed; the model name is in the icon hover text
    - it takes effect on the next session
    - to undo it, run `/statusline delete`
 

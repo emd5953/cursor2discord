@@ -78,14 +78,16 @@ inspectable, and survives both processes.
 interface SessionSidecar {
   readonly version: 1;
   readonly sessionId: string;
+  readonly pid: number | null;       // `claude` itself — the hook's `process.ppid`
   readonly cwd: string;              // join key to a Cursor workspace folder
   readonly sessionTitle: string | null;   // statusLine `session_name`
   readonly model: string | null;          // `model.display_name`
   readonly startedAt: number;
   readonly updatedAt: number;
   readonly activity: {
-    readonly tool: string | null;         // `tool_name`
-    readonly target: string | null;       // basename of `tool_input.file_path`
+    readonly tool: string | null;         // `tool_name`; null while thinking
+    readonly verb: string;                // display verb — see docs/specs/richer-presence.md
+    readonly target: string | null;       // a safe fragment, never raw `tool_input`
     readonly since: number;
   } | null;
   readonly tokens: {
@@ -130,14 +132,20 @@ matcher and the timeout are load-bearing, not hygiene:
 | Event | Matcher | Timeout | Writes |
 |---|---|---|---|
 | `SessionStart` | — | 5s | creates the sidecar, `startedAt` |
-| `PreToolUse` | `Edit\|Write\|Bash\|Read\|Task\|WebFetch` | 5s | `activity = { tool, target, since }` |
-| `PostToolUse` | same | 5s | `activity = null` (back to thinking) |
-| `Stop` | — | 5s | `activity = null` |
+| `PreToolUse` | the tool list below | 5s | `activity = { tool, verb, target, since }` |
+| `PostToolUse` | same | 5s | timestamp only — the last tool **holds** |
+| `Stop` | — | 5s | `activity = { tool: null, verb: "thinking" }` |
 | `SessionEnd` | — | 5s | deletes the sidecar |
 
-The matcher exists so grep/glob/todo churn doesn't pay ~40ms of Node startup per call. The
-5s timeout replaces the 600s default, which would otherwise let a wedged script hang a
+The 5s timeout replaces the 600s default, which would otherwise let a wedged script hang a
 session indefinitely.
+
+The matcher is `Edit|Write|Bash|Read|Task|WebFetch|WebSearch|Grep|Glob|NotebookEdit|TodoWrite`.
+It started as the first six, to keep grep/glob/todo churn from paying ~40ms of Node startup
+per call; `docs/specs/richer-presence.md` §R3 widened it, having found that the tools left
+out were exactly the ones that made a search-heavy stretch show nothing at all. The
+`PostToolUse` and `Stop` rows changed there too — see §R2 for why a finished tool is not a
+finished turn.
 
 ### Token opt-in
 
@@ -153,16 +161,26 @@ Nothing in this project writes `~/.claude/settings.json`.
 | File | Owns |
 |---|---|
 | `src/providers/claudeSession.ts` | watches the sidecar dir, matches by `cwd`, patches the store |
-| `src/bridge/detect.ts` | is the plugin installed? is the statusLine tier active? |
-| `src/presence/build.ts` | new template variables |
-| `src/state.ts` | `claudeCode` gains the live fields |
+| `src/presence/format.ts` | new template variables |
+| `src/state.ts` | `claudeLive`, written only by `claudeSession.ts` |
+
+*Dropped from this table:* a `src/bridge/detect.ts` that would answer "is the plugin
+installed?". There is nothing to detect — the sidecar's own contents say which tier is
+live, and a second answer to the same question could only disagree with the first.
 
 The extension only ever *reads*. It detects which tier is active by what appears in the
 sidecar — `activity` present means the plugin is installed, `tokens` present means the
 statusLine tier is too — and never inspects Claude Code's configuration.
 
 Watching uses `fs.watch` on the directory with a 250ms debounce, plus a 10s sweep that drops
-sidecars whose `updatedAt` is older than 60s — a hard-killed `claude` never runs `SessionEnd`.
+sidecars for sessions that are gone — a hard-killed `claude` never runs `SessionEnd`.
+
+Liveness is the **pid**, not the timestamp. Hooks fire on tool calls and turn ends, so a
+session sitting at the prompt writes nothing for as long as the user takes to type; any
+age-based rule short enough to reap a killed session is also short enough to drop a live
+one mid-thought. `process.kill(pid, 0)` answers exactly the question being asked. The age
+check survives only as a fallback for sidecars written by a plugin version that recorded
+no pid, at a deliberately generous 6h.
 
 `claudeSession.ts` supersedes `terminal.ts` when a matching sidecar exists; `terminal.ts`
 remains the fallback and the two are reconciled in the store, not in the presence pipeline.
@@ -220,8 +238,10 @@ There is nothing for this extension to reverse, because there is nothing it wrot
   most recently updated one and `{sessions}` reports the count.
 - **Session in a different repo than the focused window.** No match, no presence change —
   the leader window's workspace decides, consistent with M2.
-- **`claude` killed with -9.** No `SessionEnd`. The 60s staleness sweep drops it; `terminal.ts`
-  will already have cleared the boolean on terminal close.
+- **`claude` killed with -9.** No `SessionEnd`. The next 10s sweep finds the pid dead and
+  drops it; `terminal.ts` will already have cleared the boolean on terminal close.
+- **Session idle at the prompt for an hour.** Still live — the pid is still there. Nothing
+  is reaped for being quiet.
 - **User has an existing `statusLine`.** Chained: ours runs theirs and prints its stdout
   verbatim. If theirs fails, ours prints its own line rather than nothing.
 - **Sidecar is corrupt or a future `version`.** Ignored, logged at debug, M3 fallback applies.
@@ -232,7 +252,7 @@ There is nothing for this extension to reverse, because there is nothing it wrot
 
 ## Verification
 
-- Unit: sidecar merge semantics, staleness sweep, `cwd`→workspace matching, settings.json
+- Unit: sidecar merge semantics, pid liveness and the age fallback, `cwd`→workspace matching, settings.json
   merge preserving foreign keys, statusLine chaining. Extends the existing `npm test`.
 - Manual: install bridge → run `claude` in Cursor → ask it to edit a file → card shows the
   tool and file → hover shows tokens → `/exit` → card returns to editing.

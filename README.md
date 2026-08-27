@@ -5,7 +5,7 @@ Discord Rich Presence for [Cursor](https://cursor.com) that knows what your agen
 ```
 Playing Cursor
 Claude Code — editing client.ts
-add rate limiting to the RPC client
+add rate limiting to the RPC client · 72.0K in / 199 out · 7% ctx · up 3h 12m
 2h 14m
 ```
 
@@ -68,7 +68,8 @@ For tokens and context usage, additionally run:
 Tokens are the one thing hooks cannot see — Claude Code only exposes them to a `statusLine`
 command, and that setting is user-scoped. So this step *does* change
 `~/.claude/settings.json`. Claude Code makes the edit itself and shows you the diff; undo it
-with `/statusline delete`. Token counts appear in the card's icon hover text.
+with `/statusline delete`. Token counts and context usage go on the card's second line —
+no hover needed. The model name stays in the icon hover text.
 
 Nothing in this project ever writes a Claude Code config file.
 
