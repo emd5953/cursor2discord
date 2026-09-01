@@ -140,10 +140,14 @@ the plugin's `plugin.json` and `ASSET_REF` all agree with it — a build pinned 
 previous tag renders a card with no icons at all. It needs one repository secret,
 `OVSX_PAT`.
 
+All three versions are bumped by hand, then tagged to match:
+
 ```bash
-npm version patch --no-git-tag-version   # and the other two, to match
+npm version patch --no-git-tag-version   # package.json
+# plugins/cursor2discord/.claude-plugin/plugin.json  → "version"
+# src/presence/assets.ts                             → ASSET_REF
 git commit -am "…"
-git tag -a v0.1.4 -m v0.1.4              # -a matters: --follow-tags skips lightweight tags
+git tag -a v0.1.5 -m v0.1.5              # -a matters: --follow-tags skips lightweight tags
 git push --follow-tags
 ```
 
