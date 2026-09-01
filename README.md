@@ -28,7 +28,14 @@ If your build can't reach Open VSX, download the `.vsix` from
 `cursor --install-extension cursor2discord-*.vsix`, or the extensions panel's
 `…` → **Install from VSIX**.
 
-Then reload the window. That's it — no Discord app to register, no configuration.
+Then reload the window. That's it — nothing to register in Discord's developer portal, no
+configuration.
+
+The one requirement is the **Discord desktop app, running**. Presence travels over a local
+IPC socket that only the desktop client opens, so the browser client can never show it —
+which is the usual answer to "I installed it and nothing happened". The status bar item
+tells you which side is at fault: it reports the connection state, and clicking it is also
+the kill switch.
 
 ## What it shows
 
