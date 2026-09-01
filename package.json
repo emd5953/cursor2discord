@@ -2,7 +2,7 @@
   "name": "cursor2discord",
   "displayName": "Cursor2Discord",
   "description": "Discord Rich Presence for Cursor — shows what you're editing, what Cursor AI is doing, and when Claude Code is running.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "emd5953",
   "license": "MIT",
   "engines": {

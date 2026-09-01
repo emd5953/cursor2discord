@@ -9,7 +9,7 @@
  * It was `main` up to 0.1.1, which made the comment above a description of the
  * intent rather than of the code. Bump this in the same commit as the version.
  */
-const ASSET_REF = "v0.1.4";
+const ASSET_REF = "v0.1.5";
 const ASSET_BASE = `https://cdn.jsdelivr.net/gh/emd5953/cursor2discord@${ASSET_REF}/assets`;
 
 export interface Asset {
