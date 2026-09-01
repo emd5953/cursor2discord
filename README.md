@@ -4,7 +4,9 @@ Discord Rich Presence for [Cursor](https://cursor.com) that knows what your agen
 
 ![A Claude Code session on a real Discord profile: the tool it is running, the session title, token counts and context usage](https://raw.githubusercontent.com/emd5953/cursor2discord/main/docs/discord-card.png)
 
-<sub>An actual profile, mid-session — tool, session title, tokens and context, live.</sub>
+<sub>An actual profile, mid-session. This is the full setup — the extension alone shows
+editing and a plain Claude Code state; the tool, session title and token counts need the
+[companion plugin](#live-claude-code-detail).</sub>
 
 Other presence extensions work in Cursor, but report it as "VS Code" and are blind to the
 two things a Cursor user actually spends the day doing: driving Cursor's AI, and running
