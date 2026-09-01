@@ -2,9 +2,9 @@
 
 Discord Rich Presence for [Cursor](https://cursor.com) that knows what your agents are doing.
 
-![The Discord card cycling through editing, a Claude Code session, and idle](https://raw.githubusercontent.com/emd5953/cursor2discord/main/docs/demo.gif)
+![A Claude Code session on a real Discord profile: the tool it is running, the session title, token counts and context usage](https://raw.githubusercontent.com/emd5953/cursor2discord/main/docs/discord-card.png)
 
-<sub>Drawn from the strings the golden payload tests assert, not a screen capture.</sub>
+<sub>An actual profile, mid-session — tool, session title, tokens and context, live.</sub>
 
 Other presence extensions work in Cursor, but report it as "VS Code" and are blind to the
 two things a Cursor user actually spends the day doing: driving Cursor's AI, and running
@@ -36,6 +36,11 @@ Then reload the window. That's it — no Discord app to register, no configurati
 | `cursorAi` | `Vibing with Cursor AI` | Composer / Chat / inline edits |
 | `editing` | `Editing client.ts` | otherwise |
 | `idle` | `Idle` | no input for 5 minutes |
+
+![The Discord card cycling through editing, a Claude Code session, and idle](https://raw.githubusercontent.com/emd5953/cursor2discord/main/docs/demo.gif)
+
+<sub>Drawn from the strings the golden payload tests assert, not a screen capture — it
+cannot drift from what the extension sends without a test failing first.</sub>
 
 Which one wins is configurable via `cursor2discord.priority`.
 
@@ -130,9 +135,11 @@ Design decisions are recorded in [SPEC.md](SPEC.md) and
 [docs/specs/](docs/specs/), including the alternatives that were rejected and why.
 
 Icons are generated, not hand-drawn: `python3 scripts/make-assets.py` (needs Pillow,
-network access, and Chrome as the SVG renderer). The card above is drawn too, by
-`python3 scripts/make-demo.py`, from the strings the golden payload tests assert — it
-cannot drift from what the extension sends without a test failing first.
+network access, and Chrome as the SVG renderer). The extension icon is drawn by
+`python3 scripts/make-icon.py`, and the state-cycle GIF under **What it shows** by
+`python3 scripts/make-demo.py`, from the strings the golden payload tests assert. The
+card at the top is the one image that is a real screen capture, so it is the one that
+can go stale — reshoot it when the card's layout changes.
 
 Releasing is one tag. `.github/workflows/release.yml` builds, tests, publishes to Open VSX
 and cuts the GitHub release on any `v*` tag, refusing to publish unless `package.json`,
