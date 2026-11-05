@@ -63,6 +63,7 @@ class Runtime implements vscode.Disposable {
   private claudeSession!: ClaudeSessionProvider;
   private cursorAi!: CursorAiProvider;
   private suppressed = false;
+  private lastBlocked: string | undefined = "";
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.config = readConfig();
@@ -123,7 +124,21 @@ class Runtime implements vscode.Disposable {
       matchGlob(folder.uri.fsPath, this.config.privacy.ignoredWorkspaces),
     );
 
-    if (!this.config.enabled || this.suppressed || !this.leadership.isLeader) {
+    const blocked = !this.config.enabled
+      ? "disabled by cursor2discord.enabled = false"
+      : this.suppressed
+        ? "workspace matches cursor2discord.privacy.ignoredWorkspaces"
+        : !this.leadership.isLeader
+          ? "another Cursor window holds the Discord connection"
+          : undefined;
+
+    // Logged on change only — this runs on every config and leadership event.
+    if (blocked !== this.lastBlocked) {
+      log.info(blocked ? `not connecting: ${blocked}` : "connecting to Discord");
+      this.lastBlocked = blocked;
+    }
+
+    if (blocked) {
       void this.client.disconnect();
       return;
     }
